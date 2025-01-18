@@ -56,6 +56,7 @@ public:
   TH1D* hDeltaPhiLeadingJetvLeadingD; // Delta Phi between leading jet and D0 (should peak near 0)
   TH1D* hDeltaPhiSubleadingJetvLeadingD; // Delta Phi between sub-leading jet and leading D0 (should peak near pi)
   TH1D* hD0FragFraction; // fragmentation function for D0s in jets
+  TH1D* hD0massInJet; // mass peak for the D0
 
   DzeroJetUPCTreeMessenger *MDzeroJetUPC;
 
@@ -103,6 +104,9 @@ public:
     hD0FragFraction = new TH1D("hD0FragFraction", "", 20, 0, 1);
     hD0FragFraction->Sumw2();
 
+    hD0massInJet = new TH1D("hDmassInJet", "", 60, 1.7, 2.0);
+    hD0massInJet->Sumw2();
+
     par.printParameters();
     unsigned long nEntry = MDzeroJetUPC->GetEntries() * par.scaleFactor;
     std::cout << "Processing " << nEntry << " events." << std::endl;
@@ -122,6 +126,7 @@ public:
 
         numberAccEvents++; // increment the number of events
 
+
         // jet loop
         for (unsigned long j = 0; j < MDzeroJetUPC->JetPt->size(); j++) {
           // jet acceptance cuts
@@ -140,21 +145,33 @@ public:
             if(Dy < par.MinDzeroY || Dy > par.MaxDzeroY) continue;
 
             double Dphi = MDzeroJetUPC->Dphi->at(MDzeroJetUPC->TaggedD0Index->at(j));
+            double Dmass = MDzeroJetUPC->Dmass->at(MDzeroJetUPC->TaggedD0Index->at(j));
             hD0FragFraction->Fill(DPt/MDzeroJetUPC->JetPt->at(j));
             hD0inJetPt->Fill(DPt);
+            hD0massInJet->Fill(Dmass);
           }
         } // end of jet loop
 
         // only fill the delta phi histograms if we have a jet and a D0
         // first case, the leading jet is a d0 tagged jet
-        if(MDzeroJetUPC->isD0Tagged->size() > 1 && MDzeroJetUPC->isD0Tagged->at(1)){
-          double DPt =  MDzeroJetUPC->Dpt->at(MDzeroJetUPC->TaggedD0Index->at(1));
-          double Dphi = MDzeroJetUPC->Dphi->at(MDzeroJetUPC->TaggedD0Index->at(1));
-          double phiJet = MDzeroJetUPC->JetPhi->at(0);
-          hDeltaPhiLeadingJetvLeadingD->Fill(abs(Dphi-phiJet));
-          if(MDzeroJetUPC->JetPt->size() > 1){
-            double phiSubleadingJet = MDzeroJetUPC->JetPhi->at(1);
-            hDeltaPhiSubleadingJetvLeadingD->Fill(Dphi-phiSubleadingJet);
+        if(MDzeroJetUPC->isD0Tagged->size() > 0){
+          bool leadJetPassesCut = true;
+          if(MDzeroJetUPC->JetPt->at(0) < par.MinJetPT || MDzeroJetUPC->JetPt->at(0) > par.MaxJetPT) leadJetPassesCut = false;
+          if(MDzeroJetUPC->JetY->at(0) < par.MinJetY || MDzeroJetUPC->JetY->at(0) > par.MaxJetY) leadJetPassesCut = false;
+          if(MDzeroJetUPC->isD0Tagged->size() > 1 && MDzeroJetUPC->isD0Tagged->at(0) && leadJetPassesCut == true){
+
+            double DPt =  MDzeroJetUPC->Dpt->at(MDzeroJetUPC->TaggedD0Index->at(0));
+            double Dphi = MDzeroJetUPC->Dphi->at(MDzeroJetUPC->TaggedD0Index->at(0));
+            double Dy  = MDzeroJetUPC->Dy->at(MDzeroJetUPC->TaggedD0Index->at(0));
+            // make the D0 acceptance cuts
+            if(DPt < par.MinDzeroPT || DPt > par.MaxDzeroPT) continue;
+            if(Dy < par.MinDzeroY || Dy > par.MaxDzeroY) continue;
+            double phiJet = MDzeroJetUPC->JetPhi->at(0);
+            hDeltaPhiLeadingJetvLeadingD->Fill(abs(Dphi-phiJet));
+            if(MDzeroJetUPC->JetPt->size() > 1){
+              double phiSubleadingJet = MDzeroJetUPC->JetPhi->at(1);
+              hDeltaPhiSubleadingJetvLeadingD->Fill(Dphi-phiSubleadingJet);
+            }
           }
         }
 
@@ -189,23 +206,30 @@ public:
             if(Dy < par.MinDzeroY || Dy > par.MaxDzeroY) continue;
 
             double Dphi = MDzeroJetUPC->Dphi->at(MDzeroJetUPC->TaggedD0Index->at(j));
+            double Dmass = MDzeroJetUPC->Dmass->at(MDzeroJetUPC->TaggedD0Index->at(j));
             hD0FragFraction->Fill(DPt/MDzeroJetUPC->JetPt->at(j));
             hD0inJetPt->Fill(DPt);
+            hD0massInJet->Fill(Dmass);
           }
         } // end of jet loop
 
         // only fill the delta phi histograms if we have a jet and a D0
         // first case, the leading jet is a d0 tagged jet
-        if(MDzeroJetUPC->isD0Tagged->size() > 0 && MDzeroJetUPC->isD0Tagged->at(0)){
-          double DPt =  MDzeroJetUPC->Dpt->at(MDzeroJetUPC->TaggedD0Index->at(0));
-          double Dphi = MDzeroJetUPC->Dphi->at(MDzeroJetUPC->TaggedD0Index->at(0));
-          double phiJet = MDzeroJetUPC->JetPhi->at(0);
-          hDeltaPhiLeadingJetvLeadingD->Fill(abs(Dphi-phiJet));
-          if(MDzeroJetUPC->JetPt->size() > 1){
-            double phiSubleadingJet = MDzeroJetUPC->JetPhi->at(1);
-            hDeltaPhiSubleadingJetvLeadingD->Fill(Dphi-phiSubleadingJet);
-          }
-        }
+       if(MDzeroJetUPC->isD0Tagged->size() > 0){
+          bool leadJetPassesCut = true;
+          if(MDzeroJetUPC->JetPt->at(0) < par.MinJetPT || MDzeroJetUPC->JetPt->at(0) > par.MaxJetPT) leadJetPassesCut = false;
+          if(MDzeroJetUPC->JetY->at(0) < par.MinJetY || MDzeroJetUPC->JetY->at(0) > par.MaxJetY) leadJetPassesCut = false;
+          if(MDzeroJetUPC->isD0Tagged->size() > 1 && MDzeroJetUPC->isD0Tagged->at(0) && leadJetPassesCut == true){
+            double DPt =  MDzeroJetUPC->Dpt->at(MDzeroJetUPC->TaggedD0Index->at(0));
+            double Dphi = MDzeroJetUPC->Dphi->at(MDzeroJetUPC->TaggedD0Index->at(0));
+            double phiJet = MDzeroJetUPC->JetPhi->at(0);
+            hDeltaPhiLeadingJetvLeadingD->Fill(abs(Dphi-phiJet));
+            if(MDzeroJetUPC->JetPt->size() > 1){
+              double phiSubleadingJet = MDzeroJetUPC->JetPhi->at(1);
+              hDeltaPhiSubleadingJetvLeadingD->Fill(Dphi-phiSubleadingJet);
+            }
+         }
+       }
 
         // ref jet pT
         for (unsigned long j = 0; j < MDzeroJetUPC->RefJetPt->size(); j++) {
@@ -238,6 +262,7 @@ public:
     smartWrite(hDeltaPhiSubleadingJetvLeadingD);
     smartWrite(hD0FragFraction);
     smartWrite(hD0inJetPt);
+    smartWrite(hD0massInJet);
   }
 
 private:
@@ -251,6 +276,7 @@ private:
     delete hDeltaPhiSubleadingJetvLeadingD;
     delete hD0FragFraction;
     delete hD0inJetPt;
+    delete hD0massInJet;
 
 
   }

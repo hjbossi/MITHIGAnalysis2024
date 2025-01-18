@@ -37,6 +37,7 @@ void plotHFjet(string input, string tag){
     TDirectoryFile* paramDirectory = (TDirectoryFile*)inputFile->Get("par");
     TH1D* hTrigChoice = (TH1D*)paramDirectory->Get("parTriggerChoice");
     TH1D* hMinJetPt = (TH1D*)paramDirectory->Get("parMinJetPT");
+    TH1D* hMinD0pT  = (TH1D*)paramDirectory->Get("parMinDzeroPT");
     TH1D* hMaxJetY = (TH1D*)paramDirectory->Get("parMaxJetY");
     TH1D* hIsData = (TH1D*)paramDirectory->Get("parIsData");
 
@@ -80,7 +81,7 @@ void plotHFjet(string input, string tag){
     JetString->SetTextSize(0.035);
     JetString->SetTextFont(42);
 
-    TLatex* D0string = new TLatex(0.57, 0.8, "p_{T, D^{0}} > 2 GeV, |D^{0} y | < 2");
+    TLatex* D0string = new TLatex(0.57, 0.8, Form("p_{T, D^{0}} >  %0.0f GeV, |D^{0} y | < 2", hMinD0pT->GetBinContent(1)));
     D0string->SetNDC();
     D0string->SetTextSize(0.035);
     D0string->SetTextFont(42);
@@ -148,8 +149,6 @@ void plotHFjet(string input, string tag){
     leg2->AddEntry(hDeltaPhiLeadingJetvLeadingD,  "Leading jet");
     leg2->AddEntry(hDeltaPhiSubleadingJetvLeadingD, "Subleading jet");
 
-
-
     hDeltaPhiLeadingJetvLeadingD->SetMarkerStyle(20);
     hDeltaPhiLeadingJetvLeadingD->SetMarkerColor(kBlack);
     hDeltaPhiLeadingJetvLeadingD->SetLineColor(kBlack);
@@ -197,7 +196,7 @@ void plotHFjet(string input, string tag){
     hD0FragFraction->GetYaxis()->SetTitle("1/#it{N}_{jet}d#it{N}/dz");
     hD0FragFraction->Scale(1./hD0FragFraction->GetEntries(), "width");
 
-    //hD0FragFraction->GetYaxis()->SetRangeUser(1e-5, 5e-3);
+    hD0FragFraction->GetYaxis()->SetRangeUser(1e-5, 100);
     hD0FragFraction->GetXaxis()->SetTitleOffset(1.1);
 
 
