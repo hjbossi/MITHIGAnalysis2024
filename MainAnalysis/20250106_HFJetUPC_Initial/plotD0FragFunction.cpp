@@ -335,8 +335,6 @@ void plotD0FragFunction(std::vector<string> input, string tag){
     for(int f=0; f < input.size(); f++){
         // open the files
         TFile* inputFile = TFile::Open(input.at(f).c_str());
-        std::cout << "On input file " << f << " " << input.at(f).c_str() << std::endl;
-        inputFile->ls();
         // get the histograms
         TH1D* hNev = (TH1D*)inputFile->Get("hNev");
         hNev->SetName(Form("hNev_%d", f));

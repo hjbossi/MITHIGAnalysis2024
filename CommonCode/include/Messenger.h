@@ -882,6 +882,7 @@ public:
 
    //MC only quantities
    int Gsize;
+   float pthat;
    std::vector<float> *Gpt;
    std::vector<float> *Gy;
    std::vector<float> *Gphi;

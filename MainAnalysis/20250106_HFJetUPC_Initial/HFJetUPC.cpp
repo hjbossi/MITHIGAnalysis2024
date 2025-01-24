@@ -57,6 +57,12 @@ public:
   TH1D* hDeltaPhiSubleadingJetvLeadingD; // Delta Phi between sub-leading jet and leading D0 (should peak near pi)
   TH1D* hD0FragFraction; // fragmentation function for D0s in jets
   TH1D* hD0massInJet; // mass peak for the D0
+  TH2D* hJetPtvsPtHat; // jet pt vs pthat
+  TH2D* hD0PtvsPtHat; // D0 pt vs pt hat (no requirement that it is in a jet)
+  TH2D* hD0inJetPtvsPtHat; // D0 pt vs pt hat (with the requirement that it is in a jet)
+  TH2D* hD0JetPtvsPtHat; // D0-tagged Jet pT vs pt hat
+  TH2D* hGenJetPtvsPtHat; // generator level jet pT vs. pthat
+  TH2D* hRefJetPtvsPtHat; // ref jet pT vs pthat.
 
   DzeroJetUPCTreeMessenger *MDzeroJetUPC;
 
@@ -106,6 +112,24 @@ public:
 
     hD0massInJet = new TH1D("hDmassInJet", "", 60, 1.7, 2.0);
     hD0massInJet->Sumw2();
+
+    hJetPtvsPtHat = new TH2D("hJetPtvsPtHat", "", 250, 0, 250, 250, 0, 250);
+    hJetPtvsPtHat->Sumw2();
+
+    hGenJetPtvsPtHat = new TH2D("hGenJetPtvsPtHat", "", 250, 0, 250, 250, 0, 250);
+    hGenJetPtvsPtHat->Sumw2();
+
+    hRefJetPtvsPtHat = new TH2D("hRefJetPtvsPtHat", "", 250, 0, 250, 250, 0, 250);
+    hRefJetPtvsPtHat->Sumw2();
+
+    hD0PtvsPtHat = new TH2D("hD0PtvsPtHat", "", 250, 0, 250, 250, 0, 250);
+    hD0PtvsPtHat->Sumw2();
+
+    hD0inJetPtvsPtHat = new TH2D("hD0inJetPtvsPtHat", "", 250, 0, 250, 250, 0, 250);
+    hD0inJetPtvsPtHat->Sumw2();
+
+    hD0JetPtvsPtHat = new TH2D("hD0JetPtvsPtHat", "", 250, 0, 250, 250, 0, 250);
+    hD0JetPtvsPtHat->Sumw2();
 
     par.printParameters();
     unsigned long nEntry = MDzeroJetUPC->GetEntries() * par.scaleFactor;
@@ -189,12 +213,44 @@ public:
       if (!par.IsData) {
         numberAccEvents++; // increment the number of events
 
+        // loop over the D0s not in the jet
+        for(unsigned long d = 0; d < MDzeroJetUPC->Dsize; d++ ){
+            if(MDzeroJetUPC->Dpt->at(d) < par.MinDzeroPT || MDzeroJetUPC->Dpt->at(d) > par.MaxDzeroPT) continue;
+            if(MDzeroJetUPC->Dy->at(d) < par.MinDzeroY || MDzeroJetUPC->Dy->at(d) > par.MaxDzeroY) continue;
+            hD0PtvsPtHat->Fill(MDzeroJetUPC->Dpt->at(d), MDzeroJetUPC->pthat);
+        }
+
+        // only fill with the leading jet
+        if(MDzeroJetUPC->JetPt->size() > 0){
+          // jet acceptance cuts
+          if(MDzeroJetUPC->JetPt->at(0) < par.MinJetPT || MDzeroJetUPC->JetPt->at(0) > par.MaxJetPT) continue;
+          if(MDzeroJetUPC->JetY->at(0) < par.MinJetY || MDzeroJetUPC->JetY->at(0) > par.MaxJetY) continue;
+          //hJetPtvsPtHat->Fill(MDzeroJetUPC->JetPt->at(0), MDzeroJetUPC->pthat);
+          hJetPtvsPtHat->Fill(MDzeroJetUPC->JetPt->at(0), MDzeroJetUPC->pthat);
+          if(MDzeroJetUPC->isD0Tagged->at(0))hD0JetPtvsPtHat->Fill(MDzeroJetUPC->JetPt->at(0), MDzeroJetUPC->pthat);
+
+
+          // if the leading jet is D0 tagged
+          if(MDzeroJetUPC->isD0Tagged->at(0)){
+            // d0 acceptance cuts
+            if(MDzeroJetUPC->Dpt->at(MDzeroJetUPC->TaggedD0Index->at(0)) < par.MinDzeroPT || MDzeroJetUPC->Dpt->at(MDzeroJetUPC->TaggedD0Index->at(0)) > par.MaxDzeroPT) continue;
+            if(MDzeroJetUPC->Dy->at(MDzeroJetUPC->TaggedD0Index->at(0)) < par.MinDzeroY || MDzeroJetUPC->Dy->at(MDzeroJetUPC->TaggedD0Index->at(0)) > par.MaxDzeroY) continue;
+            hD0inJetPtvsPtHat->Fill(MDzeroJetUPC->Dpt->at(MDzeroJetUPC->TaggedD0Index->at(0)), MDzeroJetUPC->pthat);
+          }
+
+        }
+
+        // reco jet loop
         for (unsigned long j = 0; j < MDzeroJetUPC->JetPt->size(); j++) {
           // jet acceptance cuts
           if(MDzeroJetUPC->JetPt->at(j) < par.MinJetPT || MDzeroJetUPC->JetPt->at(j) > par.MaxJetPT) continue;
           if(MDzeroJetUPC->JetY->at(j) < par.MinJetY || MDzeroJetUPC->JetY->at(j) > par.MaxJetY) continue;
 
           hJetPt->Fill(MDzeroJetUPC->JetPt->at(j));
+          //hJetPtvsPtHat->Fill(MDzeroJetUPC->JetPt->at(j), MDzeroJetUPC->pthat);
+
+
+
 
           // if after looping over all of the D0s we found one within the cone, fill the jet pt
           if(MDzeroJetUPC->isD0Tagged->at(j)){
@@ -204,6 +260,7 @@ public:
             // make the D0 acceptance cuts
             if(DPt < par.MinDzeroPT || DPt > par.MaxDzeroPT) continue;
             if(Dy < par.MinDzeroY || Dy > par.MaxDzeroY) continue;
+            //hD0JetPtvsPtHat->Fill(MDzeroJetUPC->JetPt->at(j), MDzeroJetUPC->pthat);
 
             double Dphi = MDzeroJetUPC->Dphi->at(MDzeroJetUPC->TaggedD0Index->at(j));
             double Dmass = MDzeroJetUPC->Dmass->at(MDzeroJetUPC->TaggedD0Index->at(j));
@@ -233,13 +290,20 @@ public:
 
         // ref jet pT
         for (unsigned long j = 0; j < MDzeroJetUPC->RefJetPt->size(); j++) {
+          if(MDzeroJetUPC->RefJetPt->at(j) < par.MinJetPT || MDzeroJetUPC->RefJetPt->at(j) > par.MaxJetPT) continue;
+          if(MDzeroJetUPC->RefJetY->at(j) < par.MinJetY || MDzeroJetUPC->RefJetY->at(j) > par.MaxJetY) continue;
             hRefJetPt->Fill(MDzeroJetUPC->RefJetPt->at(j));
+            if(j==0)hRefJetPtvsPtHat->Fill(MDzeroJetUPC->RefJetPt->at(j), MDzeroJetUPC->pthat);
 
         } // end of ref jet loop (gen level reco match mc)
 
         // gen level loop
+        // if the size is bigger than 0 fill the pT hat histogram only with the leading jet
         for (unsigned long j = 0; j < MDzeroJetUPC->GenJetPt->size(); j++) {
+            if(MDzeroJetUPC->GenJetPt->at(j) < par.MinJetPT || MDzeroJetUPC->GenJetPt->at(j) > par.MaxJetPT) continue;
+            if(MDzeroJetUPC->GenJetY->at(j) < par.MinJetY || MDzeroJetUPC->GenJetY->at(j) > par.MaxJetY) continue;
             hGenJetPt->Fill(MDzeroJetUPC->GenJetPt->at(j));
+            if(j==0)hGenJetPtvsPtHat->Fill(MDzeroJetUPC->GenJetPt->at(j), MDzeroJetUPC->pthat);
         } // end of gen-level jet loop
       }   // end of mc
       // -----------------------
@@ -263,6 +327,12 @@ public:
     smartWrite(hD0FragFraction);
     smartWrite(hD0inJetPt);
     smartWrite(hD0massInJet);
+    smartWrite(hJetPtvsPtHat);
+    smartWrite(hD0PtvsPtHat);
+    smartWrite(hD0inJetPtvsPtHat);
+    smartWrite(hD0JetPtvsPtHat);
+    smartWrite(hGenJetPtvsPtHat);
+    smartWrite(hRefJetPtvsPtHat);
   }
 
 private:
@@ -277,6 +347,7 @@ private:
     delete hD0FragFraction;
     delete hD0inJetPt;
     delete hD0massInJet;
+    delete hJetPtvsPtHat;
 
 
   }

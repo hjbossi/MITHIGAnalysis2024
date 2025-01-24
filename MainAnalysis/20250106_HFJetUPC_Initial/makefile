@@ -10,6 +10,11 @@ ExecutePlotHFJet: plotHFjet.cpp
 		-o ExecutePlotHFJet `root-config --cflags --glibs` \
 		$(ProjectBase)/CommonCode/library/Messenger.o
 
+ExecutePlotPtHat: plotPtHat.cpp
+	g++ plotPtHat.cpp -O3 -I. -I$(ProjectBase)/CommonCode/include -I./include \
+		-o ExecutePlotPtHat `root-config --cflags --glibs` \
+		$(ProjectBase)/CommonCode/library/Messenger.o
+
 ExecutePlotDoFragFunction: plotD0FragFunction.cpp
 	g++ plotD0FragFunction.cpp -O3 -I. -I$(ProjectBase)/CommonCode/include -I./include \
 		-o ExecutePlotDoFragFunction `root-config --cflags --glibs` \

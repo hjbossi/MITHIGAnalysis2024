@@ -264,6 +264,7 @@ int main(int argc, char *argv[]) {
 
       // now fill the mc only info if we are using that
       if(IsData == false){
+        MDzeroJetUPC.pthat = Mjet.PTHat;
 
         // fill in the info for the gen jets
         for (int igen = 0; igen < Mjet.GenCount; igen++) {

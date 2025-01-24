@@ -3303,6 +3303,7 @@ bool DzeroJetUPCTreeMessenger::Initialize(bool Debug)
    Tree->SetBranchAddress("JetPhi", &JetPhi);
    Tree->SetBranchAddress("isD0Tagged", &isD0Tagged);
    Tree->SetBranchAddress("TaggedD0Index", &TaggedD0Index);
+   Tree->SetBranchAddress("pthat", &pthat);
    Tree->SetBranchAddress("Gsize", &Gsize);
    Tree->SetBranchAddress("Gpt", &Gpt);
    Tree->SetBranchAddress("Gy", &Gy);
@@ -3392,6 +3393,7 @@ bool DzeroJetUPCTreeMessenger::SetBranch(TTree *T)
    Tree->Branch("isD0Tagged", &isD0Tagged);
    Tree->Branch("TaggedD0Index", &TaggedD0Index);
 
+   Tree->Branch("pthat",                 &pthat);
    Tree->Branch("Gsize",                 &Gsize);
    Tree->Branch("Gpt",                   &Gpt);
    Tree->Branch("Gy",                    &Gy);
@@ -3437,6 +3439,7 @@ void DzeroJetUPCTreeMessenger::Clear()
    isD0Tagged->clear();
    TaggedD0Index->clear();
    Gsize = 0;
+   pthat = -1;
    Gpt->clear();
    Gy->clear();
    Gphi->clear();

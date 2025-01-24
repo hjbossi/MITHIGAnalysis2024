@@ -34,6 +34,13 @@ void plotHFjet(string input, string tag){
     TH1D* hD0FragFraction = (TH1D*)inputFile->Get("hD0FragFraction");
     TH1D* hDeltaPhiLeadingJetvLeadingD = (TH1D*)inputFile->Get("hDeltaPhiLeadingJetvLeadingD");
     TH1D* hDeltaPhiSubleadingJetvLeadingD = (TH1D*)inputFile->Get("hDeltaPhiSubleadingJetvLeadingD");
+    TH2D* hJetPtvsPtHat = (TH2D*)inputFile->Get("hJetPtvsPtHat");
+    TH2D* hD0PtvsPtHat = (TH2D*)inputFile->Get("hD0PtvsPtHat");
+    TH2D* hD0inJetPtvsPtHat = (TH2D*)inputFile->Get("hD0inJetPtvsPtHat");
+    TH2D* hD0JetPtvsPtHat = (TH2D*)inputFile->Get("hD0JetPtvsPtHat");
+    TH2D* hGenJetPtvsPtHat = (TH2D*)inputFile->Get("hGenJetPtvsPtHat");
+    TH2D* hRefJetPtvsPtHat = (TH2D*)inputFile->Get("hRefJetPtvsPtHat");
+
     TDirectoryFile* paramDirectory = (TDirectoryFile*)inputFile->Get("par");
     TH1D* hTrigChoice = (TH1D*)paramDirectory->Get("parTriggerChoice");
     TH1D* hMinJetPt = (TH1D*)paramDirectory->Get("parMinJetPT");
@@ -85,6 +92,12 @@ void plotHFjet(string input, string tag){
     D0string->SetNDC();
     D0string->SetTextSize(0.035);
     D0string->SetTextFont(42);
+
+
+    TLatex* pthatString = new TLatex(0.65,0.25,"#hat{p_{T}} > 8 GeV");
+    pthatString->SetNDC();
+    pthatString->SetTextSize(0.035);
+    pthatString->SetTextFont(42);
 
     // ------------------------------------------------------------
     // ------ Jet Pt Histogram ------------------------------------
@@ -208,6 +221,145 @@ void plotHFjet(string input, string tag){
 
 
     c3->SaveAs(Form("D0FragFunction_%s.pdf", tag.c_str()));
+
+    // ------------------------------------------------------------
+    // X vs. pthat
+    // ------------------------------------------------------------
+    // only worry about plotting this for monte carlo
+    if(hIsData->GetBinContent(1) == 0){
+
+      // ----------------------------------------------------------
+      // ------------ Jet Pt vs. Pt Hat ---------------------------
+      // ----------------------------------------------------------
+      TCanvas* c4 = new TCanvas("c4", "c4", 600, 600);
+      c4->SetLogz();
+      c4->SetTickx(1);
+      c4->SetTicky(1);
+      c4->SetRightMargin(0.13);
+      c4->SetLeftMargin(0.13);
+
+      hJetPtvsPtHat->GetXaxis()->SetTitle("#it{p}_{T, jet} (GeV)");
+      hJetPtvsPtHat->GetYaxis()->SetTitle("#hat{#it{p}_{T}} (GeV)");
+      hJetPtvsPtHat->GetXaxis()->SetTitleOffset(1.1);
+      hJetPtvsPtHat->GetXaxis()->SetRangeUser(0, 200);
+      hJetPtvsPtHat->GetYaxis()->SetRangeUser(0, 200);
+
+
+      hJetPtvsPtHat->Draw("colz");
+      pthatString->Draw();
+      cms->Draw();
+      c4->SaveAs(Form("JetPtvsPtHat_%s.pdf", tag.c_str()));
+
+
+      // ----------------------------------------------------------
+      // ------------ D0 Pt vs. Pt Hat ---------------------------
+      // ----------------------------------------------------------
+      TCanvas* c5 = new TCanvas("c5", "c5", 600, 600);
+      c5->SetLogz();
+      c5->SetTickx(1);
+      c5->SetTicky(1);
+      c5->SetRightMargin(0.13);
+      c5->SetLeftMargin(0.13);
+
+      hD0PtvsPtHat->GetXaxis()->SetTitle("#it{p}_{T, D^{0}} (GeV)");
+      hD0PtvsPtHat->GetYaxis()->SetTitle("#hat{#it{p}_{T}} (GeV)");
+      hD0PtvsPtHat->GetXaxis()->SetTitleOffset(1.1);
+      hD0PtvsPtHat->GetXaxis()->SetRangeUser(0, 200);
+      hD0PtvsPtHat->GetYaxis()->SetRangeUser(0, 200);
+
+      hD0PtvsPtHat->Draw("colz");
+      cms->Draw();
+      c5->SaveAs(Form("D0PtvsPtHat_%s.pdf", tag.c_str()));
+
+      // ----------------------------------------------------------
+      // ------------ D0 in Jet Pt vs. Pt Hat ---------------------------
+      // ----------------------------------------------------------
+      TCanvas* c6 = new TCanvas("c6", "c6", 600, 600);
+      c6->SetLogz();
+      c6->SetTickx(1);
+      c6->SetTicky(1);
+      c6->SetRightMargin(0.13);
+      c6->SetLeftMargin(0.13);
+
+      hD0inJetPtvsPtHat->GetXaxis()->SetTitle("#it{p}_{T, D^{0}} in jet (GeV)");
+      hD0inJetPtvsPtHat->GetYaxis()->SetTitle("#hat{#it{p}_{T}} (GeV)");
+      hD0inJetPtvsPtHat->GetXaxis()->SetTitleOffset(1.1);
+      hD0inJetPtvsPtHat->GetXaxis()->SetRangeUser(0, 200);
+      hD0inJetPtvsPtHat->GetYaxis()->SetRangeUser(0, 200);
+      pthatString->Draw();
+
+      hD0inJetPtvsPtHat->Draw("colz");
+      cms->Draw();
+      c6->SaveAs(Form("D0inJetPtvsPtHat_%s.pdf", tag.c_str()));
+
+
+      // ----------------------------------------------------------
+      // ------------ D0  Jet Pt vs. Pt Hat ---------------------------
+      // ----------------------------------------------------------
+      TCanvas* c7= new TCanvas("c7", "c7", 600, 600);
+      c7->SetLogz();
+      c7->SetTickx(1);
+      c7->SetTicky(1);
+      c7->SetRightMargin(0.13);
+      c7->SetLeftMargin(0.13);
+
+      hD0JetPtvsPtHat->GetXaxis()->SetTitle("#it{p}_{T, D^{0} jet} (GeV)");
+      hD0JetPtvsPtHat->GetYaxis()->SetTitle("#hat{#it{p}_{T}} (GeV)");
+      hD0JetPtvsPtHat->GetXaxis()->SetTitleOffset(1.1);
+      hD0JetPtvsPtHat->GetXaxis()->SetRangeUser(0, 200);
+      hD0JetPtvsPtHat->GetYaxis()->SetRangeUser(0, 200);
+
+      hD0JetPtvsPtHat->Draw("colz");
+      pthatString->Draw();
+      cms->Draw();
+      c7->SaveAs(Form("D0JetPtvsPtHat_%s.pdf", tag.c_str()));
+
+      // ----------------------------------------------------------
+      // ------------Gen  Jet Pt vs. Pt Hat ---------------------------
+      // ----------------------------------------------------------
+      TCanvas* c8= new TCanvas("c8", "c8", 600, 600);
+      c8->SetLogz();
+      c8->SetTickx(1);
+      c8->SetTicky(1);
+      c8->SetRightMargin(0.13);
+      c8->SetLeftMargin(0.13);
+
+      hGenJetPtvsPtHat->GetXaxis()->SetTitle("#it{p}^{gen}_{T, jet} (GeV)");
+      hGenJetPtvsPtHat->GetYaxis()->SetTitle("#hat{#it{p}_{T}} (GeV)");
+      hGenJetPtvsPtHat->GetXaxis()->SetTitleOffset(1.1);
+      hGenJetPtvsPtHat->GetXaxis()->SetRangeUser(0, 200);
+      hGenJetPtvsPtHat->GetYaxis()->SetRangeUser(0, 200);
+
+      hGenJetPtvsPtHat->Draw("colz");
+      pthatString->Draw();
+
+      cms->Draw();
+      c8->SaveAs(Form("GenJetPtvsPtHat_%s.pdf", tag.c_str()));
+
+
+      // ----------------------------------------------------------
+      // ------------Ref  Jet Pt vs. Pt Hat ---------------------------
+      // ----------------------------------------------------------
+      TCanvas* c9= new TCanvas("c9", "c9", 600, 600);
+      c9->SetLogz();
+      c9->SetTickx(1);
+      c9->SetTicky(1);
+      c9->SetRightMargin(0.13);
+      c9->SetLeftMargin(0.13);
+
+      hRefJetPtvsPtHat->GetXaxis()->SetTitle("#it{p}^{ref}_{T, jet} (GeV)");
+      hRefJetPtvsPtHat->GetYaxis()->SetTitle("#hat{#it{p}_{T}} (GeV)");
+      hRefJetPtvsPtHat->GetXaxis()->SetTitleOffset(1.1);
+      hRefJetPtvsPtHat->GetXaxis()->SetRangeUser(0, 200);
+      hRefJetPtvsPtHat->GetYaxis()->SetRangeUser(0, 200);
+
+      hRefJetPtvsPtHat->Draw("colz");
+      pthatString->Draw();
+      cms->Draw();
+      c9->SaveAs(Form("RefJetPtvsPtHat_%s.pdf", tag.c_str()));
+    }
+
+
 
 }
 

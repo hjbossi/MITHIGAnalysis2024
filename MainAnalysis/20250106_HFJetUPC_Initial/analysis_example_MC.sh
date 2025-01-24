@@ -10,8 +10,8 @@ TRIGGER=0 # no trigger selection
 ISGAMMAN=0
 ISDATA=0
 SCALEFACTOR=1.0
-INPUT=/data/HFJetUPCanalysis/MCSkims23/20250114_ForestHFJetMC23_D0Tagged_v2.root
-OUTPUTANALYSIS=output_MC_JetPtMin15_D0pTMin5.root
+INPUT=/data/HFJetUPCanalysis/MCSkims23/20250114_ForestHFJetMC23_D0Tagged_v3_pthat8.root
+OUTPUTANALYSIS=output_MC_JetPtvPtHat_pthat8s.root
 
 
 ./ExecuteHFJetUPC --Input $INPUT --MinDzeroPT $DZEROPTMIN --MaxDzeroPT $DZEROPTMAX --MinDzeroY $DZEROYMIN --MaxDzeroY $DZEROYMAX --MinJetPT $JETPTMIN --MaxJetPT $JETPTMAX --MinJetY $JETYMIN --MaxJetY $JETYMAX --IsGammaN $ISGAMMAN --TriggerChoice $TRIGGER --IsData $ISDATA --Output $OUTPUTANALYSIS --scaleFactor $SCALEFACTOR
