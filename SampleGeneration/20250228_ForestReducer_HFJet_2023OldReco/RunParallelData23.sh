@@ -1,5 +1,5 @@
 #!/bin/bash
-MAXCORES=100
+MAXCORES=40
 
 NAME="20250113_ForestHFJetData23Skim_2023UPCJanRereco_v4"
 OUTPUT="output"

@@ -1,5 +1,5 @@
 #!/bin/bash
-MAXCORES=100
+MAXCORES=40
 
 NAME="20250114_ForestHFJetMC23_D0Tagged_v3_pthat30"
 OUTPUT="output"

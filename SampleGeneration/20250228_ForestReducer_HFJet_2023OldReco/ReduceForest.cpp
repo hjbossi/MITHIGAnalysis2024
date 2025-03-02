@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
       MDzeroJetUPC.Run = MEvent.Run;
       MDzeroJetUPC.Lumi = MEvent.Lumi;
       MDzeroJetUPC.Event = MEvent.Event;
-
+      MDzeroJetUPC.Nch = MTrackPbPbUPC.nTrk;
 
       /////////////////////////////////////
       ////////// Event selection //////////

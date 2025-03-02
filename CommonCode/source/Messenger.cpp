@@ -3304,6 +3304,7 @@ bool DzeroJetUPCTreeMessenger::Initialize(bool Debug)
    Tree->SetBranchAddress("isL1ZDCXORJet12", &isL1ZDCXORJet12);
    Tree->SetBranchAddress("isL1ZDCXORJet16", &isL1ZDCXORJet16);
    Tree->SetBranchAddress("Dsize", &Dsize);
+   Tree->SetBranchAddress("Nch", &Nch);
    Tree->SetBranchAddress("Dpt", &Dpt);
    Tree->SetBranchAddress("Dy", &Dy);
    Tree->SetBranchAddress("Dphi", &Dphi);
@@ -3390,7 +3391,7 @@ bool DzeroJetUPCTreeMessenger::SetBranch(TTree *T)
    Tree->Branch("isL1ZDCXORJet8",        &isL1ZDCXORJet8, "isL1ZDCXORJet8/O");
    Tree->Branch("isL1ZDCXORJet12",       &isL1ZDCXORJet12, "isL1ZDCXORJet12/O");
    Tree->Branch("isL1ZDCXORJet16",       &isL1ZDCXORJet16, "isL1ZDCXORJet16/O");
-
+   Tree->Branch("Nch",                   &Nch, "Nch/I");
    Tree->Branch("Dsize",                 &Dsize);
    Tree->Branch("Dpt",                   &Dpt);
    Tree->Branch("Dy",                    &Dy);
@@ -3438,6 +3439,7 @@ void DzeroJetUPCTreeMessenger::Clear()
    isL1ZDCXORJet12 = false;
    isL1ZDCXORJet16 = false;
    Dsize = 0;
+   Nch = -999; 
    Dpt->clear();
    Dy->clear();
    Dphi->clear();
