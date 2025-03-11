@@ -2190,7 +2190,16 @@ bool PbPbUPCTrackTreeMessenger::Initialize()
    zErrVtx = nullptr;
    trkPt = nullptr;
    trkEta = nullptr;
+   trkPhi = nullptr; 
    highPurity = nullptr;
+   trkNormChi2 = nullptr;
+   trkPtError = nullptr; 
+   trkNLayers = nullptr; 
+   trkDzFirstVtx = nullptr; 
+   trkDzErrFirstVtx = nullptr; 
+   trkDxyFirstVtx = nullptr;
+   trkDxyErrFirstVtx = nullptr; 
+   trkNHits = nullptr;
 
    Tree->SetBranchAddress("nVtx", &nVtx);
    Tree->SetBranchAddress("nTrk", &nTrk);
@@ -2203,7 +2212,16 @@ bool PbPbUPCTrackTreeMessenger::Initialize()
    Tree->SetBranchAddress("zErrVtx", &zErrVtx);
    Tree->SetBranchAddress("trkPt", &trkPt);
    Tree->SetBranchAddress("trkEta", &trkEta);
+   Tree->SetBranchAddress("trkPhi", &trkPhi);
    Tree->SetBranchAddress("highPurity", &highPurity);
+   Tree->SetBranchAddress("trkNormChi2", &trkNormChi2);
+   Tree->SetBranchAddress("trkNLayers", &trkNLayers);
+   Tree->SetBranchAddress("trkDzFirstVtx", &trkDzFirstVtx);
+   Tree->SetBranchAddress("trkDzErrFirstVtx", &trkDzErrFirstVtx);
+   Tree->SetBranchAddress("trkDxyFirstVtx", &trkDxyFirstVtx);
+   Tree->SetBranchAddress("trkDxyErrFirstVtx", &trkDxyErrFirstVtx);
+   Tree->SetBranchAddress("trkNHits", &trkNHits);
+   Tree->SetBranchAddress("trkPtError", &trkPtError);
    return true;
 }
 
@@ -3832,7 +3850,10 @@ DzeroJetUPCTreeMessenger::DzeroJetUPCTreeMessenger(TTree *HFjetUPCTree, bool Deb
 DzeroJetUPCTreeMessenger::~DzeroJetUPCTreeMessenger()
 {
    if(Initialized == true && WriteMode == true)
-   {
+   {   
+      delete trkPt;
+      delete trkEta;
+      delete trkPhi; 
       delete Dpt;
       delete DpassCutD0inJet;
       delete Dy;
@@ -3870,6 +3891,9 @@ bool DzeroJetUPCTreeMessenger::Initialize(bool Debug)
       return false;
 
    Initialized = true;
+   trkPt = nullptr;
+   trkEta = nullptr;
+   trkPhi = nullptr;
    Dpt = nullptr;
    DpassCutD0inJet = nullptr;
    Dy = nullptr;
@@ -3901,6 +3925,9 @@ bool DzeroJetUPCTreeMessenger::Initialize(bool Debug)
    Tree->SetBranchAddress("isL1ZDCXORJet8", &isL1ZDCXORJet8);
    Tree->SetBranchAddress("isL1ZDCXORJet12", &isL1ZDCXORJet12);
    Tree->SetBranchAddress("isL1ZDCXORJet16", &isL1ZDCXORJet16);
+   Tree->SetBranchAddress("trkPt", &trkPt); 
+   Tree->SetBranchAddress("trkEta", &trkEta); 
+   Tree->SetBranchAddress("trkPhi", &trkPhi);
    Tree->SetBranchAddress("Dsize", &Dsize);
    Tree->SetBranchAddress("Nch", &Nch);
    Tree->SetBranchAddress("Dpt", &Dpt);
@@ -3956,6 +3983,9 @@ bool DzeroJetUPCTreeMessenger::SetBranch(TTree *T)
    Initialized = true;
    WriteMode = true;
 
+   trkPt = new std::vector<float>();
+   trkEta = new std::vector<float>();
+   trkPhi = new std::vector<float>(); 
    Dpt = new std::vector<float>();
    Dy = new std::vector<float>();
    Dphi = new std::vector<float>();
@@ -3990,6 +4020,9 @@ bool DzeroJetUPCTreeMessenger::SetBranch(TTree *T)
    Tree->Branch("isL1ZDCXORJet12",       &isL1ZDCXORJet12, "isL1ZDCXORJet12/O");
    Tree->Branch("isL1ZDCXORJet16",       &isL1ZDCXORJet16, "isL1ZDCXORJet16/O");
    Tree->Branch("Nch",                   &Nch, "Nch/I");
+   Tree->Branch("trkPt",                 &trkPt); 
+   Tree->Branch("trkEta",                &trkEta);
+   Tree->Branch("trkPhi",                &trkPhi);
    Tree->Branch("Dsize",                 &Dsize);
    Tree->Branch("Dpt",                   &Dpt);
    Tree->Branch("Dy",                    &Dy);
@@ -4037,7 +4070,10 @@ void DzeroJetUPCTreeMessenger::Clear()
    isL1ZDCXORJet12 = false;
    isL1ZDCXORJet16 = false;
    Dsize = 0;
-   Nch = -999; 
+   Nch = -999;
+   trkPt->clear(); 
+   trkEta->clear(); 
+   trkPhi->clear(); 
    Dpt->clear();
    Dy->clear();
    Dphi->clear();
