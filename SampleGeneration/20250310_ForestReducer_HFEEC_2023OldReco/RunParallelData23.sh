@@ -1,7 +1,7 @@
 #!/bin/bash
 MAXCORES=40
 
-NAME="20250523_ForestHFJetData23Skim_2023UPCJanRereco_v7_ModifiedCuts"
+NAME="20250523_ForestHFJetData23Skim_2023UPCJanRereco_v8"
 OUTPUT="output"
 counter=0
 filelist="/data/HFJetUPCanalysis/InputLists/2023UPCJanRereco.txt"

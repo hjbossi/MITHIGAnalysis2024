@@ -1,10 +1,10 @@
 #!/bin/bash
 MAXCORES=40
 
-NAME="20250514_ForestHFJetMC23_D0Tagged_v1_pthat0_BeamA"
+NAME="20250514_ForestHFJetMC23_D0Tagged_v2_pthat0_BeamB"
 OUTPUT="output"
 counter=0
-filelist="/data/HFJetUPCanalysis/InputLists/2023MCpromptReco_pthat0_BeamA.txt"
+filelist="/data/HFJetUPCanalysis/InputLists/2023MCpromptReco_pthat0_BeamB.txt"
 MERGEDOUTPUT="/data/HFJetUPCanalysis/MCSkims23/$NAME.root"
 #MERGEDOUTPUT="$NAME.root"
 rm $MERGEDOUTPUT

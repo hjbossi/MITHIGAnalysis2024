@@ -197,6 +197,17 @@ int main(int argc, char *argv[]) {
 
       }
 
+      ////////////////////////////
+      ///////// particle flow ////
+      ////////////////////////////
+      for(int iPF = 0; iPF < MPF.M->size(); iPF++){
+        MDzeroJetUPC.particleFlow_E->push_back(MPF.E->at(iPF)); 
+        MDzeroJetUPC.particleFlow_pT->push_back(MPF.PT->at(iPF)); 
+        MDzeroJetUPC.particleFlow_M->push_back(MPF.M->at(iPF)); 
+        MDzeroJetUPC.particleFlow_Eta->push_back(MPF.Eta->at(iPF)); 
+        MDzeroJetUPC.particleFlow_Phi->push_back(MPF.Phi->at(iPF));   
+      }
+      /////////////////////////////
 
       ////////////////////////////
       ////////// track /////////////

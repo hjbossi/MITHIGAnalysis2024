@@ -200,7 +200,7 @@ void plotHFJetPerf(std::vector<string> input, string tag, int pthatmin){
 
 
     hEECInclusive->Scale(1.0/hEECInclusive->Integral(), "width"); 
-    hEECInclusive->GetYaxis()->SetRangeUser(1e-3, 50);
+    hEECInclusive->GetYaxis()->SetRangeUser(1e-2, 1);
     hEECInclusive->SetMarkerColor(Colors[0]); 
     hEECInclusive->SetLineColor(Colors[0]); 
     hEECInclusive->SetLineWidth(2); 

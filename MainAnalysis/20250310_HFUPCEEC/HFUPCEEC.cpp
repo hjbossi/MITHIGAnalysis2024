@@ -55,8 +55,8 @@ public:
   TH1D* hEECInclusive; // inclusive EEC for gamma N UPC events
   TH1D* hTrackPt; // track pT
   TH1D* hTrackEta; // track eta
-  TH1D* hEvis; // total visible energy in the event
-  TH1D* hMvis; // total visible mass in the event
+  TH1D* hPtSum; // total scalar pT sum
+  TH1D* hMtSum; // total transverse mass
   TH1D* hMult; // multi
 
 
@@ -94,8 +94,8 @@ public:
     hTrackPt = new TH1D("hTrackPt", "", 50, 0, 50); 
     hMult = new TH1D("hMult", "", 50, 0, 50);
     hTrackEta = new TH1D("hTrackEta", "", 20, -5, 5); 
-    hEvis =new TH1D("hEvis", "", 50, 0, 200); 
-    hMvis = new TH1D("hMvis", "", 50, 0, 200); 
+    hPtSum =new TH1D("hPtSum", "", 50, 0, 200); 
+    hMtSum = new TH1D("hMtSum", "", 50, 0, 200); 
     
 
     par.printParameters();
@@ -115,24 +115,21 @@ public:
          numberAccEvents++; // increment the number of events
          hMult->Fill(MDzeroJetUPC->Nch);
          
-         // first loop over tracks to fill the visible energy and the visible mass
-         double Evis = 0.0; 
-         double Mvis = 0.0; 
-         for (unsigned long a = 0; a < MDzeroJetUPC->Nch; a++) {
-            Evis += MDzeroJetUPC->PFEnergy->at(a);
-            TLorentzVector tVec; 
-            tVec.SetPtEtaPhiE(MDzeroJetUPC->trkPt->at(a), MDzeroJetUPC->trkEta->at(a), MDzeroJetUPC->trkPhi->at(a), MDzeroJetUPC->PFEnergy->at(a));
-            Mvis += tVec.M(); 
+         // first loop over tracks to fill the scalar pT sum and the transverse mass sum
+         double PtSum = 0.0; 
+         double MtSum = 0.0; 
+         for (unsigned long a = 0; a < MDzeroJetUPC->particleFlow_pT->size(); a++) {
+            PtSum += MDzeroJetUPC->particleFlow_pT->at(a);
+            MtSum += MDzeroJetUPC->particleFlow_M->at(a);
          } // end first loop over the number of tracks
-         hEvis->Fill(Evis); 
-         hMvis->Fill(Mvis); 
+
          
          
          // skip event if it is outside of the desired hard scale
          // case 1: using visible energy as the hard scale
-         if(par.UseEvisHardScale && (Evis < par.MinEvis || Evis > par.MaxEvis)) continue; 
+         if(par.UsePtSumHardScale && (PtSum < par.MinPtSum || PtSum > par.MaxPtSum)) continue; 
          // case 2: using the visible mass as the hard scale.
-         if(!par.UseEvisHardScale && (Mvis < par.MinMvis || Mvis > par.MaxMvis)) continue; 
+         if(!par.UsePtSumHardScale && (MtSum < par.MinMtSum || MtSum > par.MaxMtSum)) continue; 
 
          // now fill the EEC if the event has the desired hard scale
           for (unsigned long a = 0; a < MDzeroJetUPC->Nch; a++) {
@@ -166,22 +163,22 @@ public:
         hMult->Fill(MDzeroJetUPC->Nch);
 
         // first loop over tracks to fill the visible energy and the visible mass
-        double Evis = 0.0; 
-        double Mvis = 0.0; 
+        double PtSum = 0.0; 
+        double MtSum = 0.0; 
         for (unsigned long a = 0; a < MDzeroJetUPC->Nch; a++) {
-          Evis += MDzeroJetUPC->PFEnergy->at(a);
+          PtSum += MDzeroJetUPC->PFEnergy->at(a);
           TLorentzVector tVec; 
           tVec.SetPtEtaPhiE(MDzeroJetUPC->trkPt->at(a), MDzeroJetUPC->trkEta->at(a), MDzeroJetUPC->trkPhi->at(a), MDzeroJetUPC->PFEnergy->at(a));
-          Mvis += tVec.M(); 
+          MtSum += tVec.M(); 
         } // end first loop over the number of tracks
-        hEvis->Fill(Evis); 
-        hMvis->Fill(Mvis); 
+        hPtSum->Fill(PtSum); 
+        hMtSum->Fill(MtSum); 
         
         // skip event if it is outside of the desired hard scale
          // case 1: using visible energy as the hard scale
-         if(par.UseEvisHardScale && (Evis < par.MinEvis || Evis > par.MaxEvis)) continue; 
+         if(par.UsePtSumHardScale && (PtSum < par.MinPtSum || PtSum > par.MaxPtSum)) continue; 
          // case 2: using the visible mass as the hard scale.
-         if(!par.UseEvisHardScale && (Mvis < par.MinMvis || Mvis > par.MaxMvis)) continue; 
+         if(!par.UsePtSumHardScale && (MtSum < par.MinMtSum || MtSum > par.MaxMtSum)) continue; 
          
         for (unsigned long a = 0; a < MDzeroJetUPC->Nch; a++) {
             // acceptance cuts on track a
@@ -220,8 +217,8 @@ public:
     smartWrite(hEECInclusive);
     smartWrite(hTrackPt); 
     smartWrite(hTrackEta); 
-    smartWrite(hEvis); 
-    smartWrite(hMvis);
+    smartWrite(hPtSum); 
+    smartWrite(hMtSum);
     smartWrite(hMult);
 
 
@@ -231,7 +228,7 @@ private:
   void deleteHistograms() {
     delete hNev;
     delete hEECInclusive;
-    delete hEvis; 
+    delete hPtSum; 
     delete hMult; 
     delete hTrackPt; 
     delete hTrackEta;
@@ -253,15 +250,15 @@ int main(int argc, char *argv[]) {
   float MaxTrackPt = CL.GetDouble("TrackJetPT", 10000); // Max track PT
   float MinTrackY = CL.GetDouble("MinTrackY", -2.4); // min track y
   float MaxTrackY = CL.GetDouble("MaxTrackY", 2.4); // max track y
-  float MinEvis = CL.GetDouble("MinEvis", 0.0); // Minimum visible energy
-  float MaxEvis = CL.GetDouble("MaxEvis", 10000); // Max visible energy
-  float MinMvis = CL.GetDouble("MinMvis", 0.0); // Minimum visible mass
-  float MaxMvis = CL.GetDouble("MaxMvis", 10000); // Max visible Mass
-  bool UseEvisHardScale = CL.GetBool("UseEvisHardScale", 1); 
+  float MinPtSum = CL.GetDouble("MinPtSum", 0.0); // Minimum visible energy
+  float MaxPtSum = CL.GetDouble("MaxPtSum", 10000); // Max visible energy
+  float MinMtSum = CL.GetDouble("MinMtSum", 0.0); // Minimum visible mass
+  float MaxMtSum = CL.GetDouble("MaxMtSum", 10000); // Max visible Mass
+  bool UsePtSumHardScale = CL.GetBool("UsePtSumHardScale", 1); 
   int TriggerChoice = CL.GetInt("TriggerChoice", 2); // 0 = no trigger sel, 1 = isL1ZDCOr, 2 = isL1ZDCXORJet8
   float scaleFactor = CL.GetDouble("scaleFactor", 1); // Scale factor for the number of events to be processed.
   bool IsData = CL.GetBool("IsData", 0);              // Data or MC
-  Parameters par(MinTrackPt, MaxTrackPt, MinTrackY, MaxTrackY, MinEvis, MaxEvis, MinMvis, MaxMvis,  IsGammaN,UseEvisHardScale, TriggerChoice, IsData, scaleFactor);
+  Parameters par(MinTrackPt, MaxTrackPt, MinTrackY, MaxTrackY, MinPtSum, MaxPtSum, MinMtSum, MaxMtSum,  IsGammaN,UsePtSumHardScale, TriggerChoice, IsData, scaleFactor);
   par.input = CL.Get("Input", "mergedSample.root"); // Input file
   par.output = CL.Get("Output", "output.root");     // Output file
   par.nThread = CL.GetInt("nThread", 1);            // The number of threads to be used for parallel processing.

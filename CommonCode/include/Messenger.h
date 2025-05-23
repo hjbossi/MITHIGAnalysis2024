@@ -1062,6 +1062,13 @@ public:
    long long Event;
    int Lumi;
    bool isL1ZDCOr, isL1ZDCXORJet8, isL1ZDCXORJet12, isL1ZDCXORJet16;
+   
+   // particle flow info
+   std::vector<float> *particleFlow_pT;
+   std::vector<float> *particleFlow_E;
+   std::vector<float> *particleFlow_Eta;
+   std::vector<float> *particleFlow_Phi;
+   std::vector<float> *particleFlow_M;
 
    //charged hadron info
    int Nch;
