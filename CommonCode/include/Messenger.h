@@ -689,6 +689,8 @@ public:
    std::vector<float> *trkDxyErrFirstVtx;
    std::vector<char>  *trkNHits;
    std::vector<float> *trkPtError;
+   std::vector<float> *PFEnergy;
+
 
 public:
    PbPbUPCTrackTreeMessenger(TFile &File, std::string TreeName = "ppTracks/trackTree");
@@ -1066,6 +1068,7 @@ public:
    std::vector<float> *trkPt;
    std::vector<float> *trkEta;
    std::vector<float> *trkPhi;
+   std::vector<float> *PFEnergy; 
 
    //D reco quantities
    int Dsize;

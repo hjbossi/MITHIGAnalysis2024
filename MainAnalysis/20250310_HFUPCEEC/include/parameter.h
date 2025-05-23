@@ -3,19 +3,20 @@
 //============================================================//
 class Parameters {
 public:
-    Parameters( float MinDzeroPT, float MaxDzeroPT, float MinDzeroY, float MaxDzeroY, float MinJetPT, float MaxJetPT, float MinJetY, float MaxJetY, bool IsGammaN, int TriggerChoice, bool IsData, float scaleFactor = 1.0)
-	: MinDzeroPT(MinDzeroPT), MaxDzeroPT(MaxDzeroPT), MinDzeroY(MinDzeroY), MaxDzeroY(MaxDzeroY), MinJetPT(MinJetPT), MaxJetPT(MaxJetPT), MinJetY(MinJetY), MaxJetY(MaxJetY), IsGammaN(IsGammaN), TriggerChoice(TriggerChoice), IsData(IsData), scaleFactor(scaleFactor) {}
+    Parameters(float MinTrackPT, float MaxTrackPT, float MinTrackY, float MaxTrackY, float MinEvis, float MaxEvis, float MinMvis, float MaxMvis, bool UseEvisHardScale,  bool IsGammaN, int TriggerChoice, bool IsData, float scaleFactor = 1.0)
+	:  MinTrackPT(MinTrackPT), MaxTrackPT(MaxTrackPT), MinTrackY(MinTrackY), MaxTrackY(MaxTrackY),  MinEvis(MinEvis), MaxEvis(MaxEvis),MinMvis(MinMvis), MaxMvis(MaxMvis), UseEvisHardScale(UseEvisHardScale), IsGammaN(IsGammaN), TriggerChoice(TriggerChoice), IsData(IsData), scaleFactor(scaleFactor) {}
     Parameters() {}
    string input;          // Input file name
    string output;         // Output file name
-   float MinDzeroPT;      // lower limit of the Dzero pT
-   float MaxDzeroPT;      // upper limit of the Dzero pT
-   float MinDzeroY;       // lower limit of the Dzero y
-   float MaxDzeroY;       // upper limit of the Dzero y
-   float MinJetPT;        // Lower limit of Jet pt
-   float MaxJetPT;        // Upper limit of Jet pt
-   float MinJetY;         // Lower limit of Jet rapidity
-   float MaxJetY;         // Upper limit of Jet rapidity
+   float MinTrackPT;      // Lower limit of Track pt
+   float MaxTrackPT;      // Upper limit of Track pt
+   float MinTrackY;       // Lower limit of Track rapidity
+   float MaxTrackY;       // Upper limit of Track rapidity
+   float MinEvis;         // lower limit on the visible energy 
+   float MaxEvis;         // upper  limit on the visible energy
+   float MinMvis;         // lower limit on the visible mass
+   float MaxMvis;         // upper limit on the visible mass
+   bool UseEvisHardScale; // select whether or not to use the visible energy to set the hard scale
    bool IsGammaN;         // GammaN analysis (or NGamma)
    int TriggerChoice;     // 0 = no trigger sel, 1 = isL1ZDCOr, 2 = isL1ZDCXORJet8
    bool IsData;           // Data or MC
@@ -25,14 +26,15 @@ public:
    void printParameters() const {
        cout << "Input file: " << input << endl;
        cout << "Output file: " << output << endl;
-       cout << "Min Dzero PT: " << MinDzeroPT << endl;
-       cout << "Max Dzero PT: " << MaxDzeroPT << endl;
-       cout << "Min Dzero Y: " << MinDzeroY << endl;
-       cout << "Max Dzero Y: " << MaxDzeroY << endl;
-       cout << "MinJetPT: " << MinJetPT << endl;
-       cout << "MaxJetPT: " << MaxJetPT << endl;
-       cout << "MinJetY: " << MinJetY << endl;
-       cout << "MaxJetY: " << MaxJetY << endl;
+       cout << "MinTrackPT: " << MinTrackPT << endl;
+       cout << "MaxTraackPT: " << MaxTrackPT << endl;
+       cout << "MinTrackY: " << MinTrackY << endl;
+       cout << "MaxTrackY: " << MaxTrackY << endl;
+       cout << "MinEvis: " << MinEvis << endl;
+       cout << "MaxEvis: " << MaxEvis << endl;
+       cout << "MinMvis: " << MinMvis << endl;
+       cout << "MaxMvis: " << MaxMvis << endl;
+       cout << "UseEvisHardScale: " << UseEvisHardScale << endl; 
        cout << "IsGammaN: " << IsGammaN << endl;
        cout << "TriggerChoice: " << TriggerChoice << endl;
        cout << "IsData: " << IsData << endl;
@@ -48,22 +50,24 @@ void saveParametersToHistograms(const Parameters& par, TFile* outf) {
     outf->cd("par"); // Change to the "par" directory
 
     // Create and fill histograms for each parameter
-    TH1D* hMinDzeroPT = new TH1D("parMinDzeroPT", "parMinDzeroPT", 1, 0, 1);
-    hMinDzeroPT->SetBinContent(1, par.MinDzeroPT);
-    TH1D* hMaxDzeroPT = new TH1D("parMaxDzeroPT", "parMaxDzeroPT", 1, 0, 1);
-    hMaxDzeroPT->SetBinContent(1, par.MaxDzeroPT);
-    TH1D* hMinDzeroY = new TH1D("parMinDzeroY", "parMinDzeroY", 1, 0, 1);
-    hMinDzeroY->SetBinContent(1, par.MinDzeroY);
-    TH1D* hMaxDzeroY = new TH1D("parMaxDzeroY", "parMaxDzeroY", 1, 0, 1);
-    hMaxDzeroY->SetBinContent(1, par.MaxDzeroY);
-    TH1D* hMinJetPT = new TH1D("parMinJetPT", "parMinJetPT", 1, 0, 1);
-    hMinJetPT->SetBinContent(1, par.MinJetPT);
-    TH1D* hMaxJetPT = new TH1D("parMaxJetPT", "parMaxJetPT", 1, 0, 1);
-    hMaxJetPT->SetBinContent(1, par.MaxJetPT);
-    TH1D* hMinJetY = new TH1D("parMinJetY", "parMinJetY", 1, 0, 1);
-    hMinJetY->SetBinContent(1, par.MinJetY);
-    TH1D* hMaxJetY = new TH1D("parMaxJetY", "parMaxJetY", 1, 0, 1);
-    hMaxJetY->SetBinContent(1, par.MaxJetY);
+    TH1D* hMinTrackPT = new TH1D("parMinTrackPT", "parMinTrackPT", 1, 0, 1);
+    hMinTrackPT->SetBinContent(1, par.MinTrackPT);
+    TH1D* hMaxTrackPT = new TH1D("parMaxTrackPT", "parMaxTrackPT", 1, 0, 1);
+    hMaxTrackPT->SetBinContent(1, par.MaxTrackPT);
+    TH1D* hMinTrackY = new TH1D("parMinTrackY", "parMinTrackY", 1, 0, 1);
+    hMinTrackY->SetBinContent(1, par.MinTrackY);
+    TH1D* hMaxTrackY = new TH1D("parMaxTrackY", "parMaxTrackY", 1, 0, 1);
+    hMaxTrackY->SetBinContent(1, par.MaxTrackY);
+    TH1D* hMinEvis = new TH1D("parMinEvis", "parMinEvis", 1, 0, 1);
+    hMinEvis->SetBinContent(1, par.MinEvis);
+    TH1D* hMaxEvis = new TH1D("parMaxEvis", "parMaxEvis", 1, 0, 1);
+    hMaxEvis->SetBinContent(1, par.MaxEvis);
+    TH1D* hMinMvis = new TH1D("parMinMvis", "parMinMvis", 1, 0, 1);
+    hMinMvis->SetBinContent(1, par.MinEvis);
+    TH1D* hMaxMvis = new TH1D("parMaxMvis", "parMaxMvis", 1, 0, 1);
+    hMaxMvis->SetBinContent(1, par.MaxMvis);
+    TH1D* hUseEvisHardScale = new TH1D("parUseEvisHardScale", "parUseEvisHardScale", 1, 0, 1);
+    hUseEvisHardScale->SetBinContent(1, par.UseEvisHardScale);
     TH1D* hIsGammaN = new TH1D("parIsGammaN", "parIsGammaN", 1, 0, 1);
     hIsGammaN->SetBinContent(1, par.IsGammaN);
     TH1D* hTriggerChoice = new TH1D("parTriggerChoice", "parTriggerChoice", 1, 0, 1);
@@ -74,27 +78,29 @@ void saveParametersToHistograms(const Parameters& par, TFile* outf) {
     hScaleFactor->SetBinContent(1, par.scaleFactor);
 
     // Write histograms to the output file
-    hMinDzeroPT->Write();
-    hMaxDzeroPT->Write();
-    hMinDzeroY->Write();
-    hMaxDzeroY->Write();
-    hMinJetPT->Write();
-    hMaxJetPT->Write();
-    hMinJetY->Write();
-    hMaxJetY->Write();
+    hMinTrackPT->Write();
+    hMaxTrackPT->Write();
+    hMinTrackY->Write();
+    hMaxTrackY->Write();
+    hMinEvis->Write(); 
+    hMaxEvis->Write(); 
+    hMinMvis->Write(); 
+    hMaxMvis->Write(); 
+    hUseEvisHardScale->Write(); 
     hIsGammaN->Write();
     hTriggerChoice->Write();
     hIsData->Write();
     hScaleFactor->Write();
     // Clean up
-    delete hMinDzeroPT;
-    delete hMaxDzeroPT;
-    delete hMinDzeroY;
-    delete hMaxDzeroY;
-    delete hMinJetPT;
-    delete hMaxJetPT;
-    delete hMinJetY;
-    delete hMaxJetY;
+    delete hMinTrackPT;
+    delete hMaxTrackPT;
+    delete hMinTrackY;
+    delete hMaxTrackY;
+    delete hMinEvis; 
+    delete hMaxEvis; 
+    delete hMinMvis; 
+    delete hMaxMvis; 
+    delete hUseEvisHardScale; 
     delete hIsGammaN;
     delete hTriggerChoice;
     delete hIsData;

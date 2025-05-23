@@ -27,7 +27,7 @@ using namespace std;
 #include "utilities.h"   // Yen-Jie's random utility functions
 
 
-void plotHFJetPerf(std::vector<string> input, string tag){
+void plotHFJetPerf(std::vector<string> input, string tag, int pthatmin){
 
     // input files
     gStyle->SetOptStat(0);
@@ -39,11 +39,14 @@ void plotHFJetPerf(std::vector<string> input, string tag){
     
     TDirectoryFile* paramDirectory = (TDirectoryFile*)inputFile->Get("par");
     TH1D* hTrigChoice = (TH1D*)paramDirectory->Get("parTriggerChoice");
-    TH1D* hMinJetPt = (TH1D*)paramDirectory->Get("parMinJetPT");
-    TH1D* hMaxJetPt = (TH1D*)paramDirectory->Get("parMaxJetPT");
-    TH1D* hMaxJetY = (TH1D*)paramDirectory->Get("parMaxJetY");
-    TH1D* hMinD0Pt = (TH1D*)paramDirectory->Get("parMinDzeroPT");
-    TH1D* hMaxD0Y  = (TH1D*)paramDirectory->Get("parMaxDzeroY");
+    TH1D* hMinTrackPt = (TH1D*)paramDirectory->Get("parMinTrackPT");
+    TH1D* hMaxTrackPt = (TH1D*)paramDirectory->Get("parMaxTrackPT");
+    TH1D* hMaxTrackY = (TH1D*)paramDirectory->Get("parMaxTrackY");
+    TH1D* hMinEvis = (TH1D*)paramDirectory->Get("parMinEvis");
+    TH1D* hMaxEvis = (TH1D*)paramDirectory->Get("parMaxEvis");
+    TH1D* hMinMvis = (TH1D*)paramDirectory->Get("parMinMvis");
+    TH1D* hMaxMvis = (TH1D*)paramDirectory->Get("parMaxMvis");
+    TH1D* hUseEvisHardScale = (TH1D*)paramDirectory->Get("parUseEvisHardScale");
     TH1D* hIsData = (TH1D*)paramDirectory->Get("parIsData");
     
     TFile* inputFileMC = TFile::Open(input.at(1).c_str());
@@ -96,7 +99,7 @@ void plotHFJetPerf(std::vector<string> input, string tag){
     leg2->SetTextFont(42);
     leg2->SetTextSize(0.035);
     
-    TLegend* legDataMC = new TLegend(0.56, 0.7, 0.8, 0.85);
+    TLegend* legDataMC = new TLegend(0.56, 0.65, 0.7, .75);
     legDataMC->SetBorderSize(0);
     legDataMC->SetFillStyle(0);
     legDataMC->SetTextFont(42);
@@ -107,7 +110,6 @@ void plotHFJetPerf(std::vector<string> input, string tag){
 
     //--------------------------------
     // loop over all of the input files
-    // hJetPt
     //-------------------------------
 
     // get the histograms
@@ -115,75 +117,56 @@ void plotHFJetPerf(std::vector<string> input, string tag){
     hNev->SetName(Form("hNev_%d", 0));
     int nEvents = hNev->GetBinContent(1);
 
+    // EEC inclusive
     TH1D* hEECInclusive = (TH1D*)inputFile->Get("hEECInclusive");
     hEECInclusive->SetName(Form("hEECInclusive_%d", 0));
-
-    TH1D* hEEC_D0Tagged = (TH1D*)inputFile->Get("hEEC_D0Tagged");
-    hEEC_D0Tagged->SetName(Form("hEEC_D0Tagged_%d", 0));
 
 
     TH1D* hEECInclusiveMC = (TH1D*)inputFileMC->Get("hEECInclusive");
     hEECInclusiveMC->SetName(Form("hEECInclusiveMC_%d", 0));
 
-    TH1D* hEEC_D0TaggedMC = (TH1D*)inputFileMC->Get("hEEC_D0Tagged");
-    hEEC_D0TaggedMC->SetName(Form("hEEC_D0TaggedMC_%d", 0));
 
-    TH1D* hEECInclusiveDijet = (TH1D*)inputFile->Get("hEECInclusiveDijet");
-    hEECInclusiveDijet->SetName(Form("hEECInclusiveDijet_%d", 0));
-
-    TH1D* hEEC_D0TaggedDijet = (TH1D*)inputFile->Get("hEEC_D0TaggedDijet");
-    hEEC_D0TaggedDijet->SetName(Form("hEEC_D0TaggedDijet_%d", 0));
+    // track pT 
+    TH1D* hTrackPtData = (TH1D*)inputFile->Get("hTrackPt"); 
+    hTrackPtData->SetName("hTrackPtData"); 
     
-    TH1D* hEventSelData = (TH1D*)inputFile->Get("hEventSel"); 
-    hEventSelData->SetName("hEventSelData"); 
+    TH1D* hTrackPtMC = (TH1D*)inputFileMC->Get("hTrackPt"); 
+    hTrackPtMC->SetName("hTrackPtMC"); 
     
-    TH1D* hEventSelMC = (TH1D*)inputFileMC->Get("hEventSel"); 
-    hEventSelMC->SetName("hEventSelMC"); 
+    // track eta 
+    TH1D* hTrackEtaData = (TH1D*)inputFile->Get("hTrackEta"); 
+    hTrackEtaData->SetName("hTrackEtaData"); 
     
-    TH1D* hJetPtData = (TH1D*)inputFile->Get("hJetPt"); 
-    hJetPtData->SetName("hJetPtData"); 
+    TH1D* hTrackEtaMC = (TH1D*)inputFileMC->Get("hTrackEta"); 
+    hTrackEtaMC->SetName("hTrackEtaMC"); 
+
+        // track mult
+    TH1D* hMultData = (TH1D*)inputFile->Get("hMult"); 
+    hMultData->SetName("hMultData"); 
     
-    TH1D* hJetPtMC = (TH1D*)inputFileMC->Get("hJetPt"); 
-    hJetPtMC->SetName("hJetPtMC"); 
+    TH1D* hMultMC = (TH1D*)inputFileMC->Get("hMult"); 
+    hMultMC->SetName("hMultMC"); 
+
+ // Evis
+ 
+     TH1D* hEvisData = (TH1D*)inputFile->Get("hEvis"); 
+    hEvisData->SetName("hEvisData"); 
     
-       
-    TH1D* hD0JetPtData = (TH1D*)inputFile->Get("hDOJetPt"); 
-    hD0JetPtData->SetName("hD0JetPtData"); 
+    TH1D* hEvisMC = (TH1D*)inputFileMC->Get("hEvis"); 
+    hEvisMC->SetName("hEvisMC"); 
+
+    TLatex* TrackString = new TLatex(0.52,0.83,Form("#it{p}_{T, track} > %0.1f GeV, |y_{track}| <  %0.1f ",hMinTrackPt->GetBinContent(1), hMaxTrackY->GetBinContent(1)));
+    TrackString->SetNDC();
+    TrackString->SetTextSize(0.035);
+    TrackString->SetTextFont(42);
+
+    TLatex* VisString; 
+    if(hUseEvisHardScale->GetBinContent(1) == 1)VisString = new TLatex(0.6,0.75,Form("%0.1f < #it{E}_{vis} < %0.1f", hMinEvis->GetBinContent(1), hMaxEvis->GetBinContent(1)));
+    else VisString = new TLatex(0.6,0.75,Form("%0.1f < #it{E}_{vis} < %0.1f", hMinEvis->GetBinContent(1), hMaxEvis->GetBinContent(1)));
+    VisString->SetNDC();
+    VisString->SetTextSize(0.035);
+    VisString->SetTextFont(42);
     
-    TH1D* hD0JetPtMC = (TH1D*)inputFileMC->Get("hDOJetPt"); 
-    hD0JetPtMC->SetName("hD0JetPtMC"); 
-
-    TLatex* D0pTString = new TLatex(0.4,0.16,Form("D^{0} #it{p}_{T} > %0.0f GeV (D^{0}-Tagged Jets Only) ", hMinD0Pt->GetBinContent(1)));
-    D0pTString->SetNDC();
-    D0pTString->SetTextSize(0.035);
-    D0pTString->SetTextFont(42);
-
-
-
-    TLatex* JetString = new TLatex(0.57,0.85,Form("#it{p}^{ref}_{T, jet} > %0.0f GeV, |y_{jet}| <  %0.0f ", hMinJetPt->GetBinContent(1), hMaxJetY->GetBinContent(1)));
-    JetString->SetNDC();
-    JetString->SetTextSize(0.035);
-    JetString->SetTextFont(42);
-
-    TLatex* RecoJetString = new TLatex(0.57,0.85,Form("#it{p}_{T, jet} > %0.0f GeV, |y_{jet}| <  %0.0f ", hMinJetPt->GetBinContent(1), hMaxJetY->GetBinContent(1)));
-    RecoJetString->SetNDC();
-    RecoJetString->SetTextSize(0.035);
-    RecoJetString->SetTextFont(42);
-
-
-
-    TLatex* JetString2D = new TLatex(0.45,0.85,Form("#it{p}^{ref}_{T, jet} > %0.0f GeV, |y_{jet}| <  %0.0f ", hMinJetPt->GetBinContent(1), hMaxJetY->GetBinContent(1)));
-    JetString2D->SetNDC();
-    JetString2D->SetTextSize(0.035);
-    JetString2D->SetTextFont(42);
-
-
-    TLatex* RecoJetString2D = new TLatex(0.45,0.85,Form("#it{p}_{T, jet} > %0.0f GeV, |y_{jet}| <  %0.0f ", hMinJetPt->GetBinContent(1), hMaxJetY->GetBinContent(1)));
-    RecoJetString2D->SetNDC();
-    RecoJetString2D->SetTextSize(0.035);
-    RecoJetString2D->SetTextFont(42);
-
-
     TLatex* TrigString;
     TLatex* TrigString2D;
     if(hTrigChoice->GetBinContent(1) == 0){
@@ -191,8 +174,8 @@ void plotHFJetPerf(std::vector<string> input, string tag){
     TrigString2D = new TLatex(0.55,0.80,"No Trigger Selection");
     }
     else if(hTrigChoice->GetBinContent(1) == 1){
-    TrigString = new TLatex(0.65,0.80,"ZDC 1n OR");
-    TrigString2D = new TLatex(0.58,0.80,"ZDC 1n OR");
+    TrigString = new TLatex(0.65,0.78,"Data, ZDC 1n OR");
+    TrigString2D = new TLatex(0.58,0.78,"Data, ZDC 1n OR");
     }
     else if(hTrigChoice->GetBinContent(1) == 2){
     TrigString = new TLatex(0.65,0.80,"ZDC XOR + Jet 8");
@@ -211,118 +194,69 @@ void plotHFJetPerf(std::vector<string> input, string tag){
     TrigString2D->SetTextSize(0.035);
     TrigString2D->SetTextFont(42);
     
-    // leg->AddEntry(hEECInclusive, Form("#gammaN Events w/ a jet, %0.0f < #it{p}_{T, jet}  < %0.0f GeV", hMinJetPt->GetBinContent(1),hMaxJetPt->GetBinContent(1) )); 
-    // leg->AddEntry(hEEC_D0Tagged, Form("#gammaN Events w/ a D0 jet, %0.0f < #it{p}_{T, jet}  < %0.0f GeV", hMinJetPt->GetBinContent(1),hMaxJetPt->GetBinContent(1) )); 
+    leg->AddEntry(hEECInclusive, "Data"); 
 
-    leg->AddEntry(hEECInclusive, Form("#gammaN Events w/ a jet, #it{p}_{T, jet}  > %0.0f GeV", hMinJetPt->GetBinContent(1) )); 
-    leg->AddEntry(hEECInclusiveMC, "Monte Carlo"); 
-    leg->AddEntry(hEEC_D0Tagged, Form("#gammaN Events w/ a D0 jet,  #it{p}_{T, jet}  > %0.0f GeV", hMinJetPt->GetBinContent(1))); 
-    leg->AddEntry(hEEC_D0TaggedMC, "Monte Carlo"); 
+    leg->AddEntry(hEECInclusiveMC, Form("Monte Carlo, #hat{#it{p}}_{T, min} = %d", pthatmin)); 
+
 
     hEECInclusive->Scale(1.0/hEECInclusive->Integral(), "width"); 
-    hEECInclusive->GetYaxis()->SetRangeUser(0.05, 5);
+    hEECInclusive->GetYaxis()->SetRangeUser(1e-3, 50);
     hEECInclusive->SetMarkerColor(Colors[0]); 
     hEECInclusive->SetLineColor(Colors[0]); 
     hEECInclusive->SetLineWidth(2); 
     hEECInclusive->SetMarkerStyle(20); 
 
-    hEEC_D0Tagged->Scale(1.0/hEEC_D0Tagged->Integral(), "width"); 
-    hEEC_D0Tagged->SetMarkerColor(Colors[1]); 
-    hEEC_D0Tagged->SetLineColor(Colors[1]); 
-    hEEC_D0Tagged->SetLineWidth(2); 
-    hEEC_D0Tagged->SetMarkerStyle(20); 
-    
     hEECInclusiveMC->Scale(1.0/hEECInclusiveMC->Integral(), "width"); 
-    hEECInclusiveMC->GetYaxis()->SetRangeUser(0.05, 5);
     hEECInclusiveMC->SetMarkerColor(Colors[0]); 
     hEECInclusiveMC->SetLineColor(Colors[0]); 
     hEECInclusiveMC->SetLineWidth(2); 
     hEECInclusiveMC->SetMarkerStyle(24); 
 
-    hEEC_D0TaggedMC->Scale(1.0/hEEC_D0TaggedMC->Integral(), "width"); 
-    hEEC_D0TaggedMC->SetMarkerColor(Colors[1]); 
-    hEEC_D0TaggedMC->SetLineColor(Colors[1]); 
-    hEEC_D0TaggedMC->SetLineWidth(2); 
-    hEEC_D0TaggedMC->SetMarkerStyle(24); 
     hEECInclusive->GetXaxis()->SetTitle("#Delta#it{R}"); 
     hEECInclusive->GetYaxis()->SetTitle("Normalized E2C"); 
 
     hEECInclusive->Draw(); 
-    hEEC_D0Tagged->Draw("same"); 
     hEECInclusiveMC->Draw("same"); 
-    hEEC_D0TaggedMC->Draw("same"); 
     cms->Draw(); 
-    //TrigString->Draw(); 
-    leg->Draw(); 
-    // JetString->Draw(); 
-    // D0pTString->Draw(); 
+    TrigString->Draw(); 
+    leg->Draw();
+    TrackString->Draw();  
+    VisString->Draw(); 
     c->SaveAs(Form("EECDataMCComparison_%s.pdf", tag.c_str()));
-    
-    
-    TCanvas* c1 = new TCanvas("c1", "c1", 600, 600);
-    c1->SetTickx(1);
-    c1->SetTicky(1);
-    c1->SetLogx(); 
-    c1->SetLogy(); 
-    c1->SetRightMargin(0.05);
-    c1->SetLeftMargin(0.13);
-    
-    legDataOnly->AddEntry(hEECInclusive, Form("#gammaN Events w/ a jet, #it{p}_{T, jet}  > %0.0f GeV", hMinJetPt->GetBinContent(1) )); 
-    legDataOnly->AddEntry(hEEC_D0Tagged, Form("#gammaN Events w/ a D0 jet,  #it{p}_{T, jet}  > %0.0f GeV", hMinJetPt->GetBinContent(1))); 
-    
-    hEECInclusive->Draw(); 
-    hEEC_D0Tagged->Draw("same"); 
-    cms->Draw(); 
-    legDataOnly->Draw(); 
-    c1->SaveAs(Form("EECDataOnly_%s.pdf", tag.c_str())); 
-    
-    TCanvas* c2 = new TCanvas("c2", "c2", 600, 600);
-    c2->SetTickx(1);
-    c2->SetTicky(1);
-    c2->SetLogx(); 
-    c2->SetLogy(); 
-    c2->SetRightMargin(0.05);
-    c2->SetLeftMargin(0.13);
-    
-    legDijet->AddEntry(hEECInclusive, Form("#gammaN Events w/ a jet, #it{p}_{T, jet}  > %0.0f GeV", hMinJetPt->GetBinContent(1) )); 
-    legDijet->AddEntry(hEECInclusiveDijet, "w/ Dijet Selection"); 
-    legDijet->AddEntry(hEEC_D0Tagged, Form("#gammaN Events w/ a D0 jet,  #it{p}_{T, jet}  > %0.0f GeV", hMinJetPt->GetBinContent(1))); 
-    legDijet->AddEntry(hEEC_D0TaggedDijet, "w/ Dijet Selection"); 
-    
-    hEECInclusiveDijet->Scale(1.0/hEECInclusiveDijet->Integral(), "width"); 
-    hEECInclusiveDijet->GetYaxis()->SetRangeUser(0.05, 5);
-    hEECInclusiveDijet->SetMarkerColor(Colors[0]); 
-    hEECInclusiveDijet->SetLineColor(Colors[0]); 
-    hEECInclusiveDijet->SetLineWidth(2); 
-    hEECInclusiveDijet->SetMarkerStyle(21); 
 
-    hEEC_D0TaggedDijet->Scale(1.0/hEEC_D0TaggedDijet->Integral(), "width"); 
-    hEEC_D0TaggedDijet->SetMarkerColor(Colors[1]); 
-    hEEC_D0TaggedDijet->SetLineColor(Colors[1]); 
-    hEEC_D0TaggedDijet->SetLineWidth(2); 
-    hEEC_D0TaggedDijet->SetMarkerStyle(21); 
-    
-    hEECInclusive->Draw(); 
-    hEEC_D0Tagged->Draw("same");
-    hEECInclusiveDijet->Draw("same");
-    hEEC_D0TaggedDijet->Draw("same");
-    cms->Draw(); 
-    legDijet->Draw(); 
-    c2->SaveAs(Form("EECDijetFirstLook_%s.pdf", tag.c_str()));
     
     TCanvas* c3 = new TCanvas("c3", "c3", 600, 600);
     c3->SetTickx(1);
     c3->SetTicky(1);
-    c3->SetLogy(); 
     c3->SetRightMargin(0.05);
     c3->SetLeftMargin(0.13);
-    hEventSelData->Scale(1./hEventSelData->GetBinContent(1)); 
-    hEventSelMC->Scale(1./hEventSelMC->GetBinContent(1)); 
-    hEventSelMC->SetLineColor(kRed);
-    hEventSelData->Draw("TEXT0 HIST");     
-    hEventSelMC->Draw("TEXT0 HIST same"); 
+    
+    hTrackEtaData->Scale(1.0/hTrackEtaData->Integral(), "width"); 
+    hTrackEtaData->SetMarkerColor(Colors[0]); 
+    hTrackEtaData->SetLineColor(Colors[0]); 
+    hTrackEtaData->SetLineWidth(2); 
+    hTrackEtaData->SetMarkerStyle(20); 
+    
+    hTrackEtaMC->Scale(1.0/hTrackEtaMC->Integral(), "width"); 
+    hTrackEtaMC->SetMarkerColor(Colors[1]); 
+    hTrackEtaMC->SetLineColor(Colors[1]); 
+    hTrackEtaMC->SetLineWidth(2); 
+    hTrackEtaMC->SetMarkerStyle(20); 
+    
+    legDataMC->AddEntry(hTrackEtaData, "Data");
+    legDataMC->AddEntry(hTrackEtaMC,  Form("Monte Carlo, #hat{#it{p}}_{T, min} = %d", pthatmin));
+    hTrackEtaData->GetXaxis()->SetTitle("#eta_{Track}"); 
+    hTrackEtaData->GetXaxis()->SetTitleOffset(1.1); 
+    hTrackEtaData->GetYaxis()->SetTitle("Area and Bin Width Norm.");
+    hTrackEtaData->GetYaxis()->SetRangeUser(0, 0.5);
+    hTrackEtaData->Draw("same");
+    hTrackEtaMC->Draw("same"); 
+    legDataMC->Draw(); 
+    TrigString->Draw(); 
+    TrackString->Draw(); 
+    VisString->Draw();  
     cms->Draw(); 
-    c3->SaveAs(Form("EventSelection_%s.pdf", tag.c_str())); 
+    c3->SaveAs(Form("TrackEta_%s.pdf", tag.c_str() ));
     
     TCanvas* c4 = new TCanvas("c4", "c4", 600, 600);
     c4->SetTickx(1);
@@ -331,44 +265,92 @@ void plotHFJetPerf(std::vector<string> input, string tag){
     c4->SetRightMargin(0.05);
     c4->SetLeftMargin(0.13);
     
-    hJetPtData->Scale(1.0/hJetPtData->Integral(), "width"); 
-    hJetPtData->SetMarkerColor(Colors[0]); 
-    hJetPtData->SetLineColor(Colors[0]); 
-    hJetPtData->SetLineWidth(2); 
-    hJetPtData->SetMarkerStyle(20); 
+    hTrackPtData->Scale(1.0/hTrackPtData->Integral(), "width"); 
+    hTrackPtData->SetMarkerColor(Colors[0]); 
+    hTrackPtData->SetLineColor(Colors[0]); 
+    hTrackPtData->SetLineWidth(2); 
+    hTrackPtData->SetMarkerStyle(20); 
     
-    hJetPtMC->Scale(1.0/hJetPtMC->Integral(), "width"); 
-    hJetPtMC->SetMarkerColor(Colors[1]); 
-    hJetPtMC->SetLineColor(Colors[1]); 
-    hJetPtMC->SetLineWidth(2); 
-    hJetPtMC->SetMarkerStyle(20); 
+    hTrackPtMC->Scale(1.0/hTrackPtMC->Integral(), "width"); 
+    hTrackPtMC->SetMarkerColor(Colors[1]); 
+    hTrackPtMC->SetLineColor(Colors[1]); 
+    hTrackPtMC->SetLineWidth(2); 
+    hTrackPtMC->SetMarkerStyle(20); 
     
-    hD0JetPtData->Scale(1.0/hD0JetPtData->Integral(), "width"); 
-    hD0JetPtData->SetMarkerColor(Colors[0]); 
-    hD0JetPtData->SetLineColor(Colors[0]); 
-    hD0JetPtData->SetLineWidth(2); 
-    hD0JetPtData->SetMarkerStyle(24); 
-    
-    hD0JetPtMC->Scale(1.0/hD0JetPtMC->Integral(), "width"); 
-    hD0JetPtMC->SetMarkerColor(Colors[1]); 
-    hD0JetPtMC->SetLineColor(Colors[1]); 
-    hD0JetPtMC->SetLineWidth(2); 
-    hD0JetPtMC->SetMarkerStyle(24); 
-    
-    legDataMC->AddEntry(hJetPtData, "Inclusive Jets Data");
-    legDataMC->AddEntry(hJetPtMC, "Inclusive Jets MC");
-    // legDataMC->AddEntry(hD0JetPtData, "D^{0} Jets Data");
-    // legDataMC->AddEntry(hD0JetPtMC, "D^{0} Jets MC");
-    hJetPtData->GetXaxis()->SetTitle("p_{T, jet} (GeV)"); 
-    hJetPtData->GetXaxis()->SetTitleOffset(1.1); 
-    hJetPtData->GetYaxis()->SetTitle("Area and Bin Width Norm.");
-    hJetPtData->Draw("same");
-    hJetPtMC->Draw("same"); 
-    // hD0JetPtData->Draw("same");
-    // hD0JetPtMC->Draw("same"); 
+    hTrackPtData->GetXaxis()->SetTitle("p_{T, Track} (GeV)"); 
+    hTrackPtData->GetXaxis()->SetTitleOffset(1.1); 
+    hTrackPtData->GetYaxis()->SetTitle("Area and Bin Width Norm.");
+    hTrackPtData->Draw("same");
+    hTrackPtMC->Draw("same"); 
     legDataMC->Draw(); 
+    TrigString->Draw(); 
+    TrackString->Draw(); 
+    VisString->Draw();  
     cms->Draw(); 
-    c4->SaveAs(Form("JetPtSpectrum_%s.pdf", tag.c_str() ));
+    c4->SaveAs(Form("TrackPtSpectrum_%s.pdf", tag.c_str() ));
+    
+    TCanvas* c5 = new TCanvas("c5", "c5", 600, 600);
+    c5->SetTickx(1);
+    c5->SetTicky(1);
+    c5->SetLogy(); 
+    c5->SetRightMargin(0.05);
+    c5->SetLeftMargin(0.13);
+    
+    hMultData->Scale(1.0/hMultData->Integral(), "width"); 
+    hMultData->SetMarkerColor(Colors[0]); 
+    hMultData->SetLineColor(Colors[0]); 
+    hMultData->SetLineWidth(2); 
+    hMultData->SetMarkerStyle(20); 
+    
+    hMultMC->Scale(1.0/hMultMC->Integral(), "width"); 
+    hMultMC->SetMarkerColor(Colors[1]); 
+    hMultMC->SetLineColor(Colors[1]); 
+    hMultMC->SetLineWidth(2); 
+    hMultMC->SetMarkerStyle(20); 
+    
+    hMultData->GetXaxis()->SetTitle("#it{N}_{ch}"); 
+    hMultData->GetXaxis()->SetTitleOffset(1.1); 
+    hMultData->GetYaxis()->SetTitle("Area and Bin Width Norm.");
+    hMultData->Draw("same");
+    hMultMC->Draw("same"); 
+    legDataMC->Draw(); 
+    TrigString->Draw(); 
+    TrackString->Draw(); 
+    VisString->Draw();  
+    cms->Draw(); 
+    c5->SaveAs(Form("TrackMult%s.pdf", tag.c_str() ));
+    
+    
+    TCanvas* c6 = new TCanvas("c6", "c6", 600, 600);
+    c6->SetTickx(1);
+    c6->SetTicky(1);
+    c6->SetLogy(); 
+    c6->SetRightMargin(0.05);
+    c6->SetLeftMargin(0.13);
+    
+    hEvisData->Scale(1.0/hEvisData->Integral(), "width"); 
+    hEvisData->SetMarkerColor(Colors[0]); 
+    hEvisData->SetLineColor(Colors[0]); 
+    hEvisData->SetLineWidth(2); 
+    hEvisData->SetMarkerStyle(20); 
+    
+    hEvisMC->Scale(1.0/hEvisMC->Integral(), "width"); 
+    hEvisMC->SetMarkerColor(Colors[1]); 
+    hEvisMC->SetLineColor(Colors[1]); 
+    hEvisMC->SetLineWidth(2); 
+    hEvisMC->SetMarkerStyle(20); 
+    
+    hEvisData->GetXaxis()->SetTitle("#it{E}_{vis} (GeV)"); 
+    hEvisData->GetXaxis()->SetTitleOffset(1.1); 
+    hEvisData->GetYaxis()->SetTitle("Area and Bin Width Norm.");
+    hEvisData->Draw("same");
+    hEvisMC->Draw("same"); 
+    legDataMC->Draw(); 
+    TrigString->Draw(); 
+    TrackString->Draw();  
+    VisString->Draw(); 
+    cms->Draw(); 
+    c6->SaveAs(Form("Evis%s.pdf", tag.c_str() ));
 }
 
 //============================================================//
@@ -381,5 +363,6 @@ int main(int argc, char *argv[]) {
   // input to this step is the result of running
   std::vector<string> input = CL.GetStringVector("Input", ""); // Input files
   string tag = CL.Get("tag", "test");
-  plotHFJetPerf(input, tag);
+  int pthatmin = CL.GetInt("PtHat", 5); 
+  plotHFJetPerf(input, tag, pthatmin);
 }

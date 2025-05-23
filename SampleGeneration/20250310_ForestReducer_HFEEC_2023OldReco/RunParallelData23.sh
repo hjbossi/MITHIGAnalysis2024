@@ -1,7 +1,7 @@
 #!/bin/bash
 MAXCORES=40
 
-NAME="20250310_ForestHFJetData23Skim_2023UPCJanRereco_v6_ModifiedCuts"
+NAME="20250523_ForestHFJetData23Skim_2023UPCJanRereco_v7_ModifiedCuts"
 OUTPUT="output"
 counter=0
 filelist="/data/HFJetUPCanalysis/InputLists/2023UPCJanRereco.txt"
@@ -44,7 +44,7 @@ while IFS= read -r file; do
             --D0MathchingDistance 0.4 \
             --IsData true \
             --PFTree particleFlowAnalyser/pftree \
-            --Fraction 1.00 &
+            --Fraction 0.5 &
     ((counter++))
     wait_for_slot
 done < "$filelist"

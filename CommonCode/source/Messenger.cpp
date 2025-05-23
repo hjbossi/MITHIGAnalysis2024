@@ -2190,7 +2190,8 @@ bool PbPbUPCTrackTreeMessenger::Initialize()
    zErrVtx = nullptr;
    trkPt = nullptr;
    trkEta = nullptr;
-   trkPhi = nullptr; 
+   trkPhi = nullptr;
+   PFEnergy = nullptr; 
    highPurity = nullptr;
    trkNormChi2 = nullptr;
    trkPtError = nullptr; 
@@ -2213,6 +2214,7 @@ bool PbPbUPCTrackTreeMessenger::Initialize()
    Tree->SetBranchAddress("trkPt", &trkPt);
    Tree->SetBranchAddress("trkEta", &trkEta);
    Tree->SetBranchAddress("trkPhi", &trkPhi);
+   Tree->SetBranchAddress("pfEnergy", &PFEnergy);
    Tree->SetBranchAddress("highPurity", &highPurity);
    Tree->SetBranchAddress("trkNormChi2", &trkNormChi2);
    Tree->SetBranchAddress("trkNLayers", &trkNLayers);
@@ -3854,6 +3856,7 @@ DzeroJetUPCTreeMessenger::~DzeroJetUPCTreeMessenger()
       delete trkPt;
       delete trkEta;
       delete trkPhi; 
+      delete PFEnergy; 
       delete Dpt;
       delete DpassCutD0inJet;
       delete Dy;
@@ -3894,6 +3897,7 @@ bool DzeroJetUPCTreeMessenger::Initialize(bool Debug)
    trkPt = nullptr;
    trkEta = nullptr;
    trkPhi = nullptr;
+   PFEnergy= nullptr; 
    Dpt = nullptr;
    DpassCutD0inJet = nullptr;
    Dy = nullptr;
@@ -3928,6 +3932,7 @@ bool DzeroJetUPCTreeMessenger::Initialize(bool Debug)
    Tree->SetBranchAddress("trkPt", &trkPt); 
    Tree->SetBranchAddress("trkEta", &trkEta); 
    Tree->SetBranchAddress("trkPhi", &trkPhi);
+   Tree->SetBranchAddress("pfEnergy", &PFEnergy); 
    Tree->SetBranchAddress("Dsize", &Dsize);
    Tree->SetBranchAddress("Nch", &Nch);
    Tree->SetBranchAddress("Dpt", &Dpt);
@@ -3986,6 +3991,7 @@ bool DzeroJetUPCTreeMessenger::SetBranch(TTree *T)
    trkPt = new std::vector<float>();
    trkEta = new std::vector<float>();
    trkPhi = new std::vector<float>(); 
+   PFEnergy = new std::vector<float>(); 
    Dpt = new std::vector<float>();
    Dy = new std::vector<float>();
    Dphi = new std::vector<float>();
@@ -4023,6 +4029,7 @@ bool DzeroJetUPCTreeMessenger::SetBranch(TTree *T)
    Tree->Branch("trkPt",                 &trkPt); 
    Tree->Branch("trkEta",                &trkEta);
    Tree->Branch("trkPhi",                &trkPhi);
+   Tree->Branch("pfEnergy",              &PFEnergy); 
    Tree->Branch("Dsize",                 &Dsize);
    Tree->Branch("Dpt",                   &Dpt);
    Tree->Branch("Dy",                    &Dy);
@@ -4074,6 +4081,7 @@ void DzeroJetUPCTreeMessenger::Clear()
    trkPt->clear(); 
    trkEta->clear(); 
    trkPhi->clear(); 
+   PFEnergy->clear(); 
    Dpt->clear();
    Dy->clear();
    Dphi->clear();

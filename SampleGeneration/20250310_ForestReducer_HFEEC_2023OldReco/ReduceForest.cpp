@@ -227,6 +227,7 @@ int main(int argc, char *argv[]) {
         MDzeroJetUPC.trkPt->push_back(MTrackPbPbUPC.trkPt->at(iTrack));
         MDzeroJetUPC.trkEta->push_back(MTrackPbPbUPC.trkEta->at(iTrack));
         MDzeroJetUPC.trkPhi->push_back(MTrackPbPbUPC.trkPhi->at(iTrack));
+        MDzeroJetUPC.PFEnergy->push_back(MTrackPbPbUPC.PFEnergy->at(iTrack)); 
 
         nAccTrk++;
       }

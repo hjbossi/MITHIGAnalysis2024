@@ -7,9 +7,10 @@
 #include <TLegend.h>
 #include <TNtuple.h>
 #include <TTree.h>
+#include <TLorentzVector.h>
 // include statements to pick up the temporary JECs from Nick
-#include "/afs/cern.ch/user/n/nbarnett/public/header_files/JetUncertainty.h"
-#include "/afs/cern.ch/user/n/nbarnett/public/header_files/JetCorrector.h"
+// #include "/afs/cern.ch/user/n/nbarnett/public/header_files/JetUncertainty.h"
+// #include "/afs/cern.ch/user/n/nbarnett/public/header_files/JetCorrector.h"
 
 #include <iostream>
 
@@ -52,13 +53,11 @@ public:
 
   // EEC histograms
   TH1D* hEECInclusive; // inclusive EEC for gamma N UPC events
-  TH1D* hEECInclusiveDijet; // inclusive EEC for dijet gammaN UPC events
-  TH1D* hEEC_D0Tagged; // EEC in D0 tagged dijet events 
-  TH1D* hEEC_D0TaggedDijet; // inclusive EEC in dijet events
-  TH1D* hJetPt; 
-  TH1D* hD0JetPt; 
-  TH1D* hEventSel; // histogram to keep track of the different types of events
-
+  TH1D* hTrackPt; // track pT
+  TH1D* hTrackEta; // track eta
+  TH1D* hEvis; // total visible energy in the event
+  TH1D* hMvis; // total visible mass in the event
+  TH1D* hMult; // multi
 
 
   DzeroJetUPCTreeMessenger *MDzeroJetUPC;
@@ -92,17 +91,12 @@ public:
 
     hNev = new TH1D("hNev", "", 1, 0, 1);
     hEECInclusive = new TH1D("hEECInclusive", "", EECBins.size()-1, EECBins.data()); 
-    hEEC_D0Tagged = new TH1D("hEEC_D0Tagged", "", EECBins.size()-1, EECBins.data()); 
-    hEECInclusiveDijet = new TH1D("hEECInclusiveDijet", "", EECBins.size()-1, EECBins.data()); 
-    hEEC_D0TaggedDijet = new TH1D("hEEC_D0TaggedDijet", "", EECBins.size()-1, EECBins.data()); 
-    hD0JetPt = new TH1D("hDOJetPt", "", 100, 0, 100); 
-    hJetPt = new TH1D("hJetPt", "", 100, 0, 100);
-    hEventSel = new TH1D("hEventSel", "", 5, 0, 5); 
-    // Fill with 0.5 for all events
-    // Fill with 1.5 for events with a jet within selections
-    // Fill with 2.5 for events with a jet within selections passing dijet selection
-    // Fill with 3.5 for events with a D0jet within selections
-    // Fill with 4.5 for events with a D0 jet withing selection passing dijet selections
+    hTrackPt = new TH1D("hTrackPt", "", 50, 0, 50); 
+    hMult = new TH1D("hMult", "", 50, 0, 50);
+    hTrackEta = new TH1D("hTrackEta", "", 20, -5, 5); 
+    hEvis =new TH1D("hEvis", "", 50, 0, 200); 
+    hMvis = new TH1D("hMvis", "", 50, 0, 200); 
+    
 
     par.printParameters();
     unsigned long nEntry = MDzeroJetUPC->GetEntries() * par.scaleFactor;
@@ -119,75 +113,47 @@ public:
       // only difference in the data part is the trigger
       if (par.IsData && triggerSelection(MDzeroJetUPC, par)) {
          numberAccEvents++; // increment the number of events
-        // reco jet loop
-        // for now we only use the jets to tag the event
-        // create flags for whether or not the event is tagged
-        bool fillEEC = false; 
-        bool fillEECDijet = false; 
-        bool fillD0EEC = false; 
-        bool fillD0EECDijet = false; 
-        for (unsigned long j = 0; j < MDzeroJetUPC->JetPt->size(); j++) {
-          // jet acceptance cuts
-          if(MDzeroJetUPC->JetPt->at(j) < par.MinJetPT || MDzeroJetUPC->JetPt->at(j) > par.MaxJetPT) continue;
-          if(MDzeroJetUPC->JetY->at(j) < par.MinJetY || MDzeroJetUPC->JetY->at(j) > par.MaxJetY) continue;
-          double deltaPhi = -1.0; 
-          // require we have at least a jet to calculate the delta phi between
-          if(MDzeroJetUPC->JetPt->size() > 1){
-            deltaPhi = MDzeroJetUPC->JetPhi->at(0) - MDzeroJetUPC->JetPhi->at(1); 
-          }
-          fillEEC = true; 
-          hJetPt->Fill(MDzeroJetUPC->JetPt->at(j)); 
-          if(deltaPhi > 2.5 && deltaPhi < 3.5 && fillEEC){
-            fillEECDijet = true; 
-            hEventSel->Fill(2.5); 
-          }
-          // if after looping over all of the D0s we found one within the cone, fill the jet pt
-          if(MDzeroJetUPC->isD0TaggedGeomJet->at(j)){
-            double DPt =  MDzeroJetUPC->Dpt->at(MDzeroJetUPC->TaggedLeadingD0GeomInJetIndex->at(j));
-            double Dy  = MDzeroJetUPC->Dy->at(MDzeroJetUPC->TaggedLeadingD0GeomInJetIndex->at(j));
-            // make the D0 acceptance cuts
-            if(DPt < par.MinDzeroPT || DPt > par.MaxDzeroPT) continue;
-            if(Dy < par.MinDzeroY || Dy > par.MaxDzeroY) continue;
-            hD0JetPt->Fill(MDzeroJetUPC->JetPt->at(j)); 
-            fillD0EEC = true; 
-            if(fillEECDijet) fillD0EECDijet = true; 
-          }
-        } // end of jet loop
-        
-        // now fill rest of event selection criteria
-        hEventSel->Fill(0.5); 
-        if(fillEEC)hEventSel->Fill(1.5); 
-        if(fillEECDijet)hEventSel->Fill(2.5); 
-        if(fillD0EEC)hEventSel->Fill(3.5); 
-        if(fillD0EECDijet)hEventSel->Fill(4.5);
-        
-        
-        if(fillD0EEC && !fillEEC)std::cout << "Error: Logic to fill the EEC is incorrect" << std::endl; 
+         hMult->Fill(MDzeroJetUPC->Nch);
+         
+         // first loop over tracks to fill the visible energy and the visible mass
+         double Evis = 0.0; 
+         double Mvis = 0.0; 
+         for (unsigned long a = 0; a < MDzeroJetUPC->Nch; a++) {
+            Evis += MDzeroJetUPC->PFEnergy->at(a);
+            TLorentzVector tVec; 
+            tVec.SetPtEtaPhiE(MDzeroJetUPC->trkPt->at(a), MDzeroJetUPC->trkEta->at(a), MDzeroJetUPC->trkPhi->at(a), MDzeroJetUPC->PFEnergy->at(a));
+            Mvis += tVec.M(); 
+         } // end first loop over the number of tracks
+         hEvis->Fill(Evis); 
+         hMvis->Fill(Mvis); 
+         
+         
+         // skip event if it is outside of the desired hard scale
+         // case 1: using visible energy as the hard scale
+         if(par.UseEvisHardScale && (Evis < par.MinEvis || Evis > par.MaxEvis)) continue; 
+         // case 2: using the visible mass as the hard scale.
+         if(!par.UseEvisHardScale && (Mvis < par.MinMvis || Mvis > par.MaxMvis)) continue; 
 
-        if(fillEEC){
-          //std::cout << "Found a jet meeting requirements, now moving on to EEC - looping over " << MDzeroJetUPC->Nch << " particles " << std::endl;
-          //std::cout << MDzeroJetUPC->trkEta->size() << std::endl;
+         // now fill the EEC if the event has the desired hard scale
           for (unsigned long a = 0; a < MDzeroJetUPC->Nch; a++) {
+            // acceptance cuts on track a
+            if( MDzeroJetUPC->trkPt->at(a) < par.MinTrackPT ) continue; 
+            if(abs(MDzeroJetUPC->trkEta->at(a)) >  par.MaxTrackY) continue; 
+            hTrackPt->Fill(MDzeroJetUPC->trkPt->at(a)); 
+            hTrackEta->Fill(MDzeroJetUPC->trkEta->at(a)); 
+            
             for (unsigned long b = a+1; b < MDzeroJetUPC->Nch; b++) {
-              // skip tracks outside of the barrel
-              if(abs(MDzeroJetUPC->trkEta->at(a)) > 2.4 || abs(MDzeroJetUPC->trkEta->at(b)) > 2.4 ) continue; 
-              //if(MDzeroJetUPC->trkPt->at(a) > 20 || MDzeroJetUPC->trkPt->at(a) > 20  ) continue; 
+              // acceptance cuts on track b
+              if(MDzeroJetUPC->trkPt->at(b) < par.MinTrackPT ) continue; 
+              if(abs(MDzeroJetUPC->trkEta->at(b) ) >  par.MaxTrackY ) continue; 
+
               double deltaEta = MDzeroJetUPC->trkEta->at(a) - MDzeroJetUPC->trkEta->at(b); 
               double deltaPhi = MDzeroJetUPC->trkPhi->at(a) - MDzeroJetUPC->trkPhi->at(b); 
               double deltaR = sqrt(deltaEta*deltaEta + deltaPhi*deltaPhi); 
-              //std::cout << "Pair " << a << " , " << b << " ) has a delta R of " << deltaR << std::endl;
               double EEC = MDzeroJetUPC->trkPt->at(a)* MDzeroJetUPC->trkPt->at(b);
               hEECInclusive->Fill(deltaR, EEC); 
-              if(fillEECDijet)hEECInclusiveDijet->Fill(deltaR, EEC);
-              if(fillD0EEC){
-                hEEC_D0Tagged->Fill(deltaR, EEC); 
-                if(fillEECDijet)hEEC_D0TaggedDijet->Fill(deltaR, EEC); 
-              }
-              
             } // end of track loop   
           } // end of track loop
-          ///std::cout << "Done with EEC loop" << std::endl;
-        }
       }
 
       // -----------------------
@@ -195,85 +161,46 @@ public:
       //-----------------------------------
       //----- MC analysis-----
       //-----------------------------------
-      // in MC we have the following jet collections
-      // JetPt: Reco level MC
-      // RefPt: Gen Match of RecoLevel Jet
-      // GenPt: Gen Level Jet Pt (doesn't need to match)
-      // right now there is no additional event selection on the MC, need to add rapidity gap
       if (!par.IsData) {
         numberAccEvents++; // increment the number of events
+        hMult->Fill(MDzeroJetUPC->Nch);
 
-
-        // reco jet loop
-        // for now we only use the jets to tag the event
-        // create flags for whether or not the event is tagged
-        bool fillEEC = false; 
-        bool fillEECDijet = false; 
-        bool fillD0EEC = false; 
-        bool fillD0EECDijet = false; 
-        for (unsigned long j = 0; j < MDzeroJetUPC->JetPt->size(); j++) {
-          // jet acceptance cuts
-          if(MDzeroJetUPC->JetPt->at(j) < par.MinJetPT || MDzeroJetUPC->JetPt->at(j) > par.MaxJetPT) continue;
-          if(MDzeroJetUPC->JetY->at(j) < par.MinJetY || MDzeroJetUPC->JetY->at(j) > par.MaxJetY) continue;
-          fillEEC = true; 
-          hJetPt->Fill(MDzeroJetUPC->JetPt->at(j)); 
-          double deltaPhi = -1.0; 
-          // require we have at least a jet to calculate the delta phi between
-          if(MDzeroJetUPC->JetPt->size() > 1){
-            deltaPhi = MDzeroJetUPC->JetPhi->at(0) - MDzeroJetUPC->JetPhi->at(1); 
-          }
-          if(deltaPhi > 2.5 && deltaPhi < 3.5 && fillEEC){
-            fillEECDijet = true; 
-            hEventSel->Fill(2.5); 
-          }
-          // if after looping over all of the D0s we found one within the cone, fill the jet pt
-          if(MDzeroJetUPC->isD0TaggedGeomJet->at(j)){
-            double DPt =  MDzeroJetUPC->Dpt->at(MDzeroJetUPC->TaggedLeadingD0GeomInJetIndex->at(j));
-            double Dy  = MDzeroJetUPC->Dy->at(MDzeroJetUPC->TaggedLeadingD0GeomInJetIndex->at(j));
-            hD0JetPt->Fill(MDzeroJetUPC->JetPt->at(j)); 
-            // make the D0 acceptance cuts
-            if(DPt < par.MinDzeroPT || DPt > par.MaxDzeroPT) continue;
-            if(Dy < par.MinDzeroY || Dy > par.MaxDzeroY) continue;
-            fillD0EEC = true;             
-            if(fillEECDijet) fillD0EECDijet = true; 
-            break; // don't  need to keep looking after we've found one
-          }
-        } // end of jet loop
+        // first loop over tracks to fill the visible energy and the visible mass
+        double Evis = 0.0; 
+        double Mvis = 0.0; 
+        for (unsigned long a = 0; a < MDzeroJetUPC->Nch; a++) {
+          Evis += MDzeroJetUPC->PFEnergy->at(a);
+          TLorentzVector tVec; 
+          tVec.SetPtEtaPhiE(MDzeroJetUPC->trkPt->at(a), MDzeroJetUPC->trkEta->at(a), MDzeroJetUPC->trkPhi->at(a), MDzeroJetUPC->PFEnergy->at(a));
+          Mvis += tVec.M(); 
+        } // end first loop over the number of tracks
+        hEvis->Fill(Evis); 
+        hMvis->Fill(Mvis); 
         
-        // fill the event selection histograms
-        hEventSel->Fill(0.5); 
-        if(fillEEC)hEventSel->Fill(1.5); 
-        if(fillEECDijet)hEventSel->Fill(2.5); 
-        if(fillD0EEC)hEventSel->Fill(3.5); 
-        if(fillD0EECDijet)hEventSel->Fill(4.5);
-        
-        if(fillD0EEC && ! fillEEC)std::cout << "Error: Logic to fill the EEC is incorrect" << std::endl; 
-
-        if(fillEEC){
-          //std::cout << "Found a jet meeting requirements, now moving on to EEC - looping over " << MDzeroJetUPC->Nch << " particles " << std::endl;
-          //std::cout << MDzeroJetUPC->trkEta->size() << std::endl;
-          for (unsigned long a = 0; a < MDzeroJetUPC->Nch; a++) {
+        // skip event if it is outside of the desired hard scale
+         // case 1: using visible energy as the hard scale
+         if(par.UseEvisHardScale && (Evis < par.MinEvis || Evis > par.MaxEvis)) continue; 
+         // case 2: using the visible mass as the hard scale.
+         if(!par.UseEvisHardScale && (Mvis < par.MinMvis || Mvis > par.MaxMvis)) continue; 
+         
+        for (unsigned long a = 0; a < MDzeroJetUPC->Nch; a++) {
+            // acceptance cuts on track a
+            if( MDzeroJetUPC->trkPt->at(a) < par.MinTrackPT ) continue; 
+            if(abs(MDzeroJetUPC->trkEta->at(a)) >  par.MaxTrackY) continue; 
+            hTrackPt->Fill(MDzeroJetUPC->trkPt->at(a)); 
+            hTrackEta->Fill(MDzeroJetUPC->trkEta->at(a)); 
             for (unsigned long b = a+1; b < MDzeroJetUPC->Nch; b++) {
-              // skip tracks outside of the barrel
-              if(abs(MDzeroJetUPC->trkEta->at(a)) > 2.4 || abs(MDzeroJetUPC->trkEta->at(b)) > 2.4 ) continue; 
-              //if(MDzeroJetUPC->trkPt->at(a) > 20 || MDzeroJetUPC->trkPt->at(a) > 20  ) continue; 
+              // acceptance cuts on track b
+              if(MDzeroJetUPC->trkPt->at(b) < par.MinTrackPT ) continue; 
+              if(abs(MDzeroJetUPC->trkEta->at(b) ) >  par.MaxTrackY ) continue; 
               double deltaEta = MDzeroJetUPC->trkEta->at(a) - MDzeroJetUPC->trkEta->at(b); 
               double deltaPhi = MDzeroJetUPC->trkPhi->at(a) - MDzeroJetUPC->trkPhi->at(b); 
               double deltaR = sqrt(deltaEta*deltaEta + deltaPhi*deltaPhi); 
-              //std::cout << "Pair " << a << " , " << b << " ) has a delta R of " << deltaR << std::endl;
               double EEC = MDzeroJetUPC->trkPt->at(a)* MDzeroJetUPC->trkPt->at(b);
               hEECInclusive->Fill(deltaR, EEC); 
-              if(fillEECDijet)hEECInclusiveDijet->Fill(deltaR, EEC);
-              if(fillD0EEC){
-                hEEC_D0Tagged->Fill(deltaR, EEC); 
-                if(fillEECDijet)hEEC_D0TaggedDijet->Fill(deltaR, EEC); 
-              }
-              
             } // end of track loop   
-          } // end of track loop
-          ///std::cout << "Done with EEC loop" << std::endl;
         }
-
+      
       
 
         
@@ -291,12 +218,12 @@ public:
     outf->cd();
     smartWrite(hNev);
     smartWrite(hEECInclusive);
-    smartWrite(hEEC_D0Tagged);
-    smartWrite(hEECInclusiveDijet);
-    smartWrite(hEEC_D0TaggedDijet);
-    smartWrite(hJetPt); 
-    smartWrite(hD0JetPt);
-    smartWrite(hEventSel);
+    smartWrite(hTrackPt); 
+    smartWrite(hTrackEta); 
+    smartWrite(hEvis); 
+    smartWrite(hMvis);
+    smartWrite(hMult);
+
 
   }
 
@@ -304,9 +231,11 @@ private:
   void deleteHistograms() {
     delete hNev;
     delete hEECInclusive;
-    delete hEEC_D0Tagged;
-    delete hEECInclusiveDijet;
-    delete hEEC_D0TaggedDijet;
+    delete hEvis; 
+    delete hMult; 
+    delete hTrackPt; 
+    delete hTrackEta;
+
 
 
   }
@@ -319,19 +248,20 @@ int main(int argc, char *argv[]) {
   if (printHelpMessage(argc, argv))
     return 0;
   CommandLine CL(argc, argv);
-  float MinDzeroPT = CL.GetDouble("MinDzeroPT", 0.0);  // Minimum Dzero transverse momentum threshold for Dzero selection.
-  float MaxDzeroPT = CL.GetDouble("MaxDzeroPT", 1000);  // Maximum Dzero transverse momentum threshold for Dzero selection.
-  float MinDzeroY = CL.GetDouble("MinDzeroY", -2);   // Minimum Dzero rapidity threshold for Dzero selection.
-  float MaxDzeroY = CL.GetDouble("MaxDzeroY", +2);   // Maximum Dzero rapidity threshold for Dzero selection.
   bool IsGammaN = CL.GetBool("IsGammaN", true);      // GammaN analysis (or NGamma)
-  float MinJetPt = CL.GetDouble("MinJetPT", 0.0); // Minimum Jet PT
-  float MaxJetPt = CL.GetDouble("MaxJetPT", 10000); // Max Jet PT
-  float MinJetY = CL.GetDouble("MinJetY", -2.4); // min jet y
-  float MaxJetY = CL.GetDouble("MaxJetY", 2.4); // max jet y
+  float MinTrackPt = CL.GetDouble("MinTrackPT", 0.0); // Minimum track PT
+  float MaxTrackPt = CL.GetDouble("TrackJetPT", 10000); // Max track PT
+  float MinTrackY = CL.GetDouble("MinTrackY", -2.4); // min track y
+  float MaxTrackY = CL.GetDouble("MaxTrackY", 2.4); // max track y
+  float MinEvis = CL.GetDouble("MinEvis", 0.0); // Minimum visible energy
+  float MaxEvis = CL.GetDouble("MaxEvis", 10000); // Max visible energy
+  float MinMvis = CL.GetDouble("MinMvis", 0.0); // Minimum visible mass
+  float MaxMvis = CL.GetDouble("MaxMvis", 10000); // Max visible Mass
+  bool UseEvisHardScale = CL.GetBool("UseEvisHardScale", 1); 
   int TriggerChoice = CL.GetInt("TriggerChoice", 2); // 0 = no trigger sel, 1 = isL1ZDCOr, 2 = isL1ZDCXORJet8
   float scaleFactor = CL.GetDouble("scaleFactor", 1); // Scale factor for the number of events to be processed.
   bool IsData = CL.GetBool("IsData", 0);              // Data or MC
-  Parameters par(MinDzeroPT, MaxDzeroPT, MinDzeroY, MaxDzeroY, MinJetPt, MaxJetPt, MinJetY, MaxJetY, IsGammaN, TriggerChoice, IsData, scaleFactor);
+  Parameters par(MinTrackPt, MaxTrackPt, MinTrackY, MaxTrackY, MinEvis, MaxEvis, MinMvis, MaxMvis,  IsGammaN,UseEvisHardScale, TriggerChoice, IsData, scaleFactor);
   par.input = CL.Get("Input", "mergedSample.root"); // Input file
   par.output = CL.Get("Output", "output.root");     // Output file
   par.nThread = CL.GetInt("nThread", 1);            // The number of threads to be used for parallel processing.
