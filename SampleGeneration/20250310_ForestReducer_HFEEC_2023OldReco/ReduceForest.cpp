@@ -45,13 +45,11 @@ int main(int argc, char *argv[]) {
   double Fraction = CL.GetDouble("Fraction", 1.00);
   double MinJetPT = CL.GetDouble("MinJetPT", 0.0);
   double MaxJetEta = CL.GetDouble("MaxJetEta", 2.4);
-  double D0MathchingDistance = CL.GetDouble("D0MathchingDistance", 0.4);
   float ZDCMinus1nThreshold = CL.GetDouble("ZDCMinus1nThreshold", 1000.);
   float ZDCPlus1nThreshold = CL.GetDouble("ZDCPlus1nThreshold", 1100.);
   int ApplyTriggerRejection = CL.GetInteger("ApplyTriggerRejection", 0);
   bool ApplyEventRejection = CL.GetBool("ApplyEventRejection", false);
   bool ApplyZDCGapRejection = CL.GetBool("ApplyZDCGapRejection", false);
-  int ApplyDRejection = CL.GetInteger("ApplyDRejection", 0);
   string PFTreeName = CL.Get("PFTree", "particleFlowAnalyser/pftree");
   string DGenTreeName = CL.Get("DGenTree", "Dfinder/ntGen");
   string ZDCTreeName = CL.Get("ZDCTree", "zdcanalyzer/zdcdigi"); // update ZDC info to be rechit when using CMSSW 14_1_X
@@ -59,8 +57,8 @@ int main(int argc, char *argv[]) {
   TFile OutputFile(OutputFileName.c_str(), "RECREATE");
   TTree Tree("Tree", Form("Tree for D0 Jet UPC Analysis (%s)", VersionString.c_str()));
   TTree InfoTree("InfoTree", "Information");
-  DzeroJetUPCTreeMessenger MDzeroJetUPC;
-  MDzeroJetUPC.SetBranch(&Tree);
+  UPCEECTreeMessenger MUPCEEC;
+  MUPCEEC.SetBranch(&Tree);
 
   for (string InputFileName : InputFileNames) {
     TFile InputFile(InputFileName.c_str());
@@ -103,7 +101,7 @@ int main(int argc, char *argv[]) {
       if (IsData == false)
         MDzeroGen.GetEntry(iE);
       MZDC.GetEntry(iE);
-      MDzeroJetUPC.Clear();
+      MUPCEEC.Clear();
       MMETFilter.GetEntry(iE);
       Mjet.GetEntry(iE);
 
@@ -113,22 +111,14 @@ int main(int argc, char *argv[]) {
       ////////// Global event stuff //////////
       ////////////////////////////////////////
 
-      MDzeroJetUPC.Run = MEvent.Run;
-      MDzeroJetUPC.Lumi = MEvent.Lumi;
-      MDzeroJetUPC.Event = MEvent.Event;
-      MDzeroJetUPC.Nch = MTrackPbPbUPC.nTrk;
+      MUPCEEC.Run = MEvent.Run;
+      MUPCEEC.Lumi = MEvent.Lumi;
+      MUPCEEC.Event = MEvent.Event;
+      MUPCEEC.Nch = MTrackPbPbUPC.nTrk;
 
       /////////////////////////////////////
       ////////// Event selection //////////
       /////////////////////////////////////
-      if (IsData == false) {
-         MDzeroJetUPC.Gsize = MDzeroGen.Gsize;
-        for (int iDGen = 0; iDGen < MDzeroGen.Gsize; iDGen++) {
-          MDzeroJetUPC.Gpt->push_back(MDzeroGen.Gpt[iDGen]);
-          MDzeroJetUPC.Gy->push_back(MDzeroGen.Gy[iDGen]);
-          MDzeroJetUPC.Gphi->push_back(MDzeroGen.Gphi[iDGen]);
-        }
-      }
       if (IsData == true) {
         if (Year == 2023) {
           int HLT_HIUPC_SingleJet8_ZDC1nXOR_MaxPixelCluster50000_2023 =
@@ -143,10 +133,10 @@ int main(int argc, char *argv[]) {
                            HLT_HIUPC_ZDC1nOR_MinPixelCluster400_MaxPixelCluster10000_2023 == 1;
           bool isL1ZDCXORJet8 = HLT_HIUPC_SingleJet8_ZDC1nXOR_MaxPixelCluster50000_2023 == 1 ||
                                 HLT_HIUPC_SingleJet8_ZDC1nAsymXOR_MaxPixelCluster50000_2023 == 1;
-          MDzeroJetUPC.isL1ZDCOr = isL1ZDCOr;
-          MDzeroJetUPC.isL1ZDCXORJet8 = isL1ZDCXORJet8;
-          MDzeroJetUPC.isL1ZDCXORJet12 = false;
-          MDzeroJetUPC.isL1ZDCXORJet16 = false;
+          MUPCEEC.isL1ZDCOr = isL1ZDCOr;
+          MUPCEEC.isL1ZDCXORJet8 = isL1ZDCXORJet8;
+          MUPCEEC.isL1ZDCXORJet12 = false;
+          MUPCEEC.isL1ZDCXORJet16 = false;
           if (ApplyTriggerRejection == 1 && IsData && (isL1ZDCOr == false && isL1ZDCXORJet8 == false)) continue;
           if (ApplyTriggerRejection == 2 && IsData && isL1ZDCOr == false) continue;
         }
@@ -155,10 +145,10 @@ int main(int argc, char *argv[]) {
           int HLT_HIUPC_ZDC1nOR_MaxPixelCluster10000 = MTrigger.CheckTriggerStartWith("HLT_HIUPC_ZDC1nOR_MaxPixelCluster10000_v2");
           int HLT_HIUPC_SingleJet8_ZDC1nXOR_MaxPixelCluster10000 = MTrigger.CheckTriggerStartWith("HLT_HIUPC_SingleJet8_ZDC1nXOR_MaxPixelCluster10000");
           bool isL1ZDCOr = HLT_HIUPC_ZDC1nOR_MinPixelCluster400_MaxPixelCluster10000 == 1 || HLT_HIUPC_ZDC1nOR_MaxPixelCluster10000 == 1;
-          MDzeroJetUPC.isL1ZDCOr = isL1ZDCOr;
-          MDzeroJetUPC.isL1ZDCXORJet8 = false;
-          MDzeroJetUPC.isL1ZDCXORJet12 = false;
-          MDzeroJetUPC.isL1ZDCXORJet16 = false;
+          MUPCEEC.isL1ZDCOr = isL1ZDCOr;
+          MUPCEEC.isL1ZDCXORJet8 = false;
+          MUPCEEC.isL1ZDCXORJet12 = false;
+          MUPCEEC.isL1ZDCXORJet16 = false;
           if (ApplyTriggerRejection == 1 && IsData) std::cout << "Trigger rejection ZDCOR || ZDCXORJet8 not implemented for 2024" << std::endl;
           if (ApplyTriggerRejection == 2 && IsData && isL1ZDCOr == false) continue;
         }
@@ -201,11 +191,11 @@ int main(int argc, char *argv[]) {
       ///////// particle flow ////
       ////////////////////////////
       for(int iPF = 0; iPF < MPF.M->size(); iPF++){
-        MDzeroJetUPC.particleFlow_E->push_back(MPF.E->at(iPF)); 
-        MDzeroJetUPC.particleFlow_pT->push_back(MPF.PT->at(iPF)); 
-        MDzeroJetUPC.particleFlow_M->push_back(MPF.M->at(iPF)); 
-        MDzeroJetUPC.particleFlow_Eta->push_back(MPF.Eta->at(iPF)); 
-        MDzeroJetUPC.particleFlow_Phi->push_back(MPF.Phi->at(iPF));   
+        MUPCEEC.E->push_back(MPF.E->at(iPF)); 
+        MUPCEEC.PT->push_back(MPF.PT->at(iPF)); 
+        MUPCEEC.M->push_back(MPF.M->at(iPF)); 
+        MUPCEEC.Eta->push_back(MPF.Eta->at(iPF)); 
+        MUPCEEC.Phi->push_back(MPF.Phi->at(iPF));    
       }
       /////////////////////////////
 
@@ -235,32 +225,14 @@ int main(int argc, char *argv[]) {
           if(MTrackPbPbUPC.trkPtError->at(iTrack)/MTrackPbPbUPC.trkPt->at(iTrack) < 0) continue; 
         }
        
-        MDzeroJetUPC.trkPt->push_back(MTrackPbPbUPC.trkPt->at(iTrack));
-        MDzeroJetUPC.trkEta->push_back(MTrackPbPbUPC.trkEta->at(iTrack));
-        MDzeroJetUPC.trkPhi->push_back(MTrackPbPbUPC.trkPhi->at(iTrack));
-        MDzeroJetUPC.PFEnergy->push_back(MTrackPbPbUPC.PFEnergy->at(iTrack)); 
+        MUPCEEC.trkPt->push_back(MTrackPbPbUPC.trkPt->at(iTrack));
+        MUPCEEC.trkEta->push_back(MTrackPbPbUPC.trkEta->at(iTrack));
+        MUPCEEC.trkPhi->push_back(MTrackPbPbUPC.trkPhi->at(iTrack));
+        MUPCEEC.PFEnergy->push_back(MTrackPbPbUPC.PFEnergy->at(iTrack)); 
 
         nAccTrk++;
       }
-      MDzeroJetUPC.Nch = nAccTrk; 
-
-      ////////////////////////////
-      ////////// Dzero /////////////
-      ////////////////////////////
-      int countSelDzero = 0;
-      for (int iD = 0; iD < MDzero.Dsize; iD++) {
-        if (ApplyDRejection == 1 && DmesonSelectionSkimInUPCJet(MDzero, iD) == false) continue;
-        countSelDzero++;
-        MDzeroJetUPC.Dpt->push_back(MDzero.Dpt[iD]);
-        MDzeroJetUPC.Dy->push_back(MDzero.Dy[iD]);
-        MDzeroJetUPC.Dphi->push_back(MDzero.Dphi[iD]);
-        MDzeroJetUPC.Dmass->push_back(MDzero.Dmass[iD]);
-        MDzeroJetUPC.DpassCutD0inJet->push_back(DmesonSelectionSkimInUPCJet(MDzero,iD));
-        if (IsData == false) {
-          MDzeroJetUPC.Dgen->push_back(MDzero.Dgen[iD]);
-        }
-      }
-      MDzeroJetUPC.Dsize = countSelDzero;
+      MUPCEEC.Nch = nAccTrk; 
 
       ////////////////////////////
       ////////// Jet /////////////
@@ -272,62 +244,33 @@ int main(int argc, char *argv[]) {
 
         jetCountPostSelection++;
        // add the basic jet variables to the tree
-        MDzeroJetUPC.JetPt->push_back(Mjet.JetPT[ijet]);
-        MDzeroJetUPC.JetEta->push_back(Mjet.JetEta[ijet]);
-        MDzeroJetUPC.JetY->push_back(Mjet.JetY[ijet]);
-        MDzeroJetUPC.JetPhi->push_back(Mjet.JetPhi[ijet]);
-
-        // now write some code to see if the jet can be called D0 tagged
-        // note this tagging is before any pT cut of the D0
-        // for each jet check if there is a d0
-        // only check the selected d0s
-        double minDistance = 9999;
-        int d0Index = -1;
-        for(int id = 0; id < MDzeroJetUPC.Dpt->size(); id++){
-            // calculate the distance
-            double deltaYsq = (Mjet.JetY[ijet] - MDzeroJetUPC.Dy->at(id)) *  (Mjet.JetY[ijet] - MDzeroJetUPC.Dy->at(id));
-            double deltaPhisq = (Mjet.JetPhi[ijet] - MDzeroJetUPC.Dphi->at(id)) * (Mjet.JetPhi[ijet] - MDzeroJetUPC.Dphi->at(id));
-            double dist = sqrt(deltaYsq + deltaPhisq);
-            if(dist < minDistance) {
-              minDistance = dist;
-              d0Index = id;
-	      // if we found one, no need to continue
-	      break;
-            }
-        } // end of Dzero loop
-
-          // if after looping over all of the D0s we found one within the cone, fill the jet pt
-         if(minDistance < D0MathchingDistance){
-          MDzeroJetUPC.isD0TaggedGeomJet->push_back(true);
-          MDzeroJetUPC.TaggedLeadingD0GeomInJetIndex->push_back(d0Index);
-         }
-         else{
-          MDzeroJetUPC.isD0TaggedGeomJet->push_back(false);
-          MDzeroJetUPC.TaggedLeadingD0GeomInJetIndex->push_back(-1);
-         }
+        MUPCEEC.JetPt->push_back(Mjet.JetPT[ijet]);
+        MUPCEEC.JetEta->push_back(Mjet.JetEta[ijet]);
+        MUPCEEC.JetY->push_back(Mjet.JetY[ijet]);
+        MUPCEEC.JetPhi->push_back(Mjet.JetPhi[ijet]);
 
 
       }
-      MDzeroJetUPC.JetCount = jetCountPostSelection;
+      MUPCEEC.JetCount = jetCountPostSelection;
 
       // now fill the mc only info if we are using that
       if(IsData == false){
-        MDzeroJetUPC.pthat = Mjet.PTHat;
+        MUPCEEC.pthat = Mjet.PTHat;
 
         // fill in the info for the gen jets
         for (int igen = 0; igen < Mjet.GenCount; igen++) {
-          MDzeroJetUPC.GenJetPt->push_back(Mjet.GenPT[igen]);
-          MDzeroJetUPC.GenJetEta->push_back(Mjet.GenEta[igen]);
-          MDzeroJetUPC.GenJetY->push_back(Mjet.GenY[igen]);
-          MDzeroJetUPC.GenJetPhi->push_back(Mjet.GenPhi[igen]);
+          MUPCEEC.GenJetPt->push_back(Mjet.GenPT[igen]);
+          MUPCEEC.GenJetEta->push_back(Mjet.GenEta[igen]);
+          MUPCEEC.GenJetY->push_back(Mjet.GenY[igen]);
+          MUPCEEC.GenJetPhi->push_back(Mjet.GenPhi[igen]);
         }
 
             // fill in the info for the matched jets
         for (int ijet = 0; ijet < Mjet.JetCount; ijet++) {
-          MDzeroJetUPC.RefJetPt->push_back(Mjet.RefPT[ijet]);
-          MDzeroJetUPC.RefJetEta->push_back(Mjet.RefEta[ijet]);
-          MDzeroJetUPC.RefJetY->push_back(Mjet.RefY[ijet]);
-          MDzeroJetUPC.RefJetPhi->push_back(Mjet.RefPhi[ijet]);
+          MUPCEEC.RefJetPt->push_back(Mjet.RefPT[ijet]);
+          MUPCEEC.RefJetEta->push_back(Mjet.RefEta[ijet]);
+          MUPCEEC.RefJetY->push_back(Mjet.RefY[ijet]);
+          MUPCEEC.RefJetPhi->push_back(Mjet.RefPhi[ijet]);
 
         }
 
@@ -335,7 +278,7 @@ int main(int argc, char *argv[]) {
 
 
 
-      MDzeroJetUPC.FillEntry();
+      MUPCEEC.FillEntry();
     }
 
     Bar.Update(EntryCount);

@@ -1064,11 +1064,11 @@ public:
    bool isL1ZDCOr, isL1ZDCXORJet8, isL1ZDCXORJet12, isL1ZDCXORJet16;
    
    // particle flow info
-   std::vector<float> *particleFlow_pT;
-   std::vector<float> *particleFlow_E;
-   std::vector<float> *particleFlow_Eta;
-   std::vector<float> *particleFlow_Phi;
-   std::vector<float> *particleFlow_M;
+   std::vector<float> *PT;
+   std::vector<float> *E;
+   std::vector<float> *Eta;
+   std::vector<float> *Phi;
+   std::vector<float> *M;
 
    //charged hadron info
    int Nch;
@@ -1077,30 +1077,15 @@ public:
    std::vector<float> *trkPhi;
    std::vector<float> *PFEnergy; 
 
-   //D reco quantities
-   int Dsize;
-   std::vector<float> *Dpt;
-   std::vector<float> *Dphi;
-   std::vector<float> *Dy;
-   std::vector<float> *Dmass;
-   std::vector<bool>  *DpassCutD0inJet;
-   std::vector<int>   *Dgen;
-
    // inclusive jet quantites
    int JetCount;
    std::vector<float> *JetPt;
    std::vector<float> *JetEta;
    std::vector<float> *JetY;
    std::vector<float> *JetPhi;
-   std::vector<bool>  *isD0TaggedGeomJet;
-   std::vector<int>   *TaggedLeadingD0GeomInJetIndex;
 
    //MC only quantities
-   int Gsize;
    float pthat;
-   std::vector<float> *Gpt;
-   std::vector<float> *Gy;
-   std::vector<float> *Gphi;
    std::vector<float> *GenJetPt;
    std::vector<float> *GenJetEta;
    std::vector<float> *GenJetY;
@@ -1115,10 +1100,10 @@ private:
    bool Initialized;
 
 public:
-   DzeroJetUPCTreeMessenger(TFile &File, std::string TreeName = "tree", bool Debug = false);
-   DzeroJetUPCTreeMessenger(TFile *File, std::string TreeName = "tree", bool Debug = false);
-   DzeroJetUPCTreeMessenger(TTree *HFJetUPCTree = nullptr, bool Debug = false);
-   ~DzeroJetUPCTreeMessenger();
+   UPCEECTreeMessenger(TFile &File, std::string TreeName = "tree", bool Debug = false);
+   UPCEECTreeMessenger(TFile *File, std::string TreeName = "tree", bool Debug = false);
+   UPCEECTreeMessenger(TTree *HFJetUPCTree = nullptr, bool Debug = false);
+   ~UPCEECTreeMessenger();
    bool Initialize(TTree *HFJetUPCTree, bool Debug = false);
    bool Initialize(bool Debug = false);
    int GetEntries();

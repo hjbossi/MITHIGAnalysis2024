@@ -17,19 +17,24 @@
 using namespace std;
 #include "CommandLine.h" // Yi's Commandline bundle
 #include "Messenger.h"   // Yi's Messengers for reading data files
+#include "TauHelperFunctions3.h"
 #include "ProgressBar.h" // Yi's fish progress bar
 #include "helpMessage.h" // Print out help message
 #include "parameter.h"   // The parameters used in the analysis
 #include "utilities.h"   // Yen-Jie's random utility functions
 
 
-//======= jetSelection =====================================//
-// Check if the jet pass selection criteria
-// for the moment the selections are handled in the actual functions, but could consider to move them here.
+//======= findBin =====================================//
+// function that scans the bins provided in order to know what bin to put things in 
 //============================================================//
-bool jetSelection(DzeroJetUPCTreeMessenger *b, Parameters par, int j) {
-  return true;
+int FindBin(double Value, int NBins, double Bins[])
+{
+   for(int i = 0; i < NBins; i++)
+      if(Value < Bins[i])
+         return i - 1;
+   return NBins;
 }
+
 
 //======= triggerSelection =====================================//
 // Here the event selection was done at the level of the skimmer
@@ -53,6 +58,7 @@ public:
 
   // EEC histograms
   TH1D* hEECInclusive; // inclusive EEC for gamma N UPC events
+  TH1D* hEEC; // EEC in the double log style 
   TH1D* hTrackPt; // track pT
   TH1D* hTrackEta; // track eta
   TH1D* hPtSum; // total scalar pT sum
@@ -87,6 +93,18 @@ public:
         double binEdge = start * pow(stop / start, static_cast<double>(i) / (numBins - 1));
         EECBins.push_back(binEdge);
     }
+    
+    // for the double log version, copy the theta binning from the e+e- analysis
+    const int BinCount = 100;
+    double Bins[2*BinCount+1];
+    double BinMin = 0.002;
+    double BinMax = M_PI / 2;
+    
+    for(int i = 0; i <= BinCount; i++){
+      // theta double log binning
+      Bins[i] = exp(log(BinMin) + (log(BinMax) - log(BinMin)) / BinCount * i);
+      Bins[2*BinCount-i] = BinMax * 2 - exp(log(BinMin) + (log(BinMax) - log(BinMin)) / BinCount * i);
+    }
 
 
     hNev = new TH1D("hNev", "", 1, 0, 1);
@@ -96,7 +114,9 @@ public:
     hTrackEta = new TH1D("hTrackEta", "", 20, -5, 5); 
     hPtSum =new TH1D("hPtSum", "", 50, 0, 200); 
     hMtSum = new TH1D("hMtSum", "", 50, 0, 200); 
+    hEEC =  new TH1D("hEEC", "hEEC", 2 * BinCount, 0, 2 * BinCount);
     
+
 
     par.printParameters();
     unsigned long nEntry = MDzeroJetUPC->GetEntries() * par.scaleFactor;
@@ -111,26 +131,34 @@ public:
       if(i % 1000 == 0) std::cout << "On entry " << i << std::endl;
       
       // only difference in the data part is the trigger
-      if (par.IsData && triggerSelection(MDzeroJetUPC, par)) {
-         numberAccEvents++; // increment the number of events
+      if ((par.IsData && triggerSelection(MDzeroJetUPC, par)) || !par.IsData) {
          hMult->Fill(MDzeroJetUPC->Nch);
          
-         // first loop over tracks to fill the scalar pT sum and the transverse mass sum
+         numberAccEvents++; // increment the number of events
+         
+         // Step 1: Determine the right hard scale to use 
+         // first loop over particle flow candidates to fill the scalar pT sum and the transverse mass sum
          double PtSum = 0.0; 
          double MtSum = 0.0; 
          for (unsigned long a = 0; a < MDzeroJetUPC->particleFlow_pT->size(); a++) {
+            // for this cutoff use the 1 GeV threshold determined by Luna
+            if(MDzeroJetUPC->particleFlow_pT->at(a) < 1.0) continue; 
             PtSum += MDzeroJetUPC->particleFlow_pT->at(a);
             MtSum += MDzeroJetUPC->particleFlow_M->at(a);
          } // end first loop over the number of tracks
 
          
-         
+         // Step 2: Make a cut based on the hard scale
          // skip event if it is outside of the desired hard scale
          // case 1: using visible energy as the hard scale
          if(par.UsePtSumHardScale && (PtSum < par.MinPtSum || PtSum > par.MaxPtSum)) continue; 
          // case 2: using the visible mass as the hard scale.
          if(!par.UsePtSumHardScale && (MtSum < par.MinMtSum || MtSum > par.MaxMtSum)) continue; 
+        
 
+        if(PtSum < 1.0) std::cout << "Error: If statement not working! " << std::endl;
+         
+         // std::cout << "par.UsePtSumHardScale "  << par.UsePtSumHardScale << " PtSum: " << PtSum  << " par.MinPtSum " << par.MinPtSum << "  par.MaxMtSum: " <<  par.MaxMtSum << std::endl;
          // now fill the EEC if the event has the desired hard scale
           for (unsigned long a = 0; a < MDzeroJetUPC->Nch; a++) {
             // acceptance cuts on track a
@@ -142,75 +170,45 @@ public:
             for (unsigned long b = a+1; b < MDzeroJetUPC->Nch; b++) {
               // acceptance cuts on track b
               if(MDzeroJetUPC->trkPt->at(b) < par.MinTrackPT ) continue; 
-              if(abs(MDzeroJetUPC->trkEta->at(b) ) >  par.MaxTrackY ) continue; 
+              if(abs(MDzeroJetUPC->trkEta->at(b)) >  par.MaxTrackY ) continue; 
 
+              // fill the delta R EEC
               double deltaEta = MDzeroJetUPC->trkEta->at(a) - MDzeroJetUPC->trkEta->at(b); 
               double deltaPhi = MDzeroJetUPC->trkPhi->at(a) - MDzeroJetUPC->trkPhi->at(b); 
               double deltaR = sqrt(deltaEta*deltaEta + deltaPhi*deltaPhi); 
               double EEC = MDzeroJetUPC->trkPt->at(a)* MDzeroJetUPC->trkPt->at(b);
               hEECInclusive->Fill(deltaR, EEC); 
+              
+              // fill the double log EEC
+              // need to create the four vector 
+              FourVector Reco1; 
+              FourVector Reco2; 
+              // use pion mass assumption 138.04 MeV/c
+              // use this value since it is roughly (2*charged pion mass) + neutral pion mass / 3
+              Reco1.SetPtEtaPhiMass(MDzeroJetUPC->trkPt->at(a), MDzeroJetUPC->trkEta->at(a), MDzeroJetUPC->trkPhi->at(a), 0.13804); 
+              Reco2.SetPtEtaPhiMass(MDzeroJetUPC->trkPt->at(b), MDzeroJetUPC->trkEta->at(b), MDzeroJetUPC->trkPhi->at(b), 0.13804); 
+              double recoTheta = GetAngle(Reco1,Reco2);
+              //std::cout << "recoTheta " << recoTheta << std::endl;
+              int BinThetaReco = FindBin(recoTheta, 2 * BinCount, Bins);
+              double TotalE; 
+              if(par.UsePtSumHardScale)TotalE = PtSum; 
+              else TotalE = MtSum; 
+
+              //std::cout << "total E " << TotalE << std::endl;
+              double  recoEEC  = MDzeroJetUPC->PFEnergy->at(a)*MDzeroJetUPC->PFEnergy->at(b)/(TotalE*TotalE);
+              //std::cout << "Filling EEC in bin: " << BinThetaReco << " with entry count " << recoEEC << std::endl;
+              hEEC->Fill(BinThetaReco, recoEEC);
             } // end of track loop   
           } // end of track loop
-      }
-
-      // -----------------------
-
-      //-----------------------------------
-      //----- MC analysis-----
-      //-----------------------------------
-      if (!par.IsData) {
-        numberAccEvents++; // increment the number of events
-        hMult->Fill(MDzeroJetUPC->Nch);
-
-        // first loop over tracks to fill the visible energy and the visible mass
-        double PtSum = 0.0; 
-        double MtSum = 0.0; 
-        for (unsigned long a = 0; a < MDzeroJetUPC->Nch; a++) {
-          PtSum += MDzeroJetUPC->PFEnergy->at(a);
-          TLorentzVector tVec; 
-          tVec.SetPtEtaPhiE(MDzeroJetUPC->trkPt->at(a), MDzeroJetUPC->trkEta->at(a), MDzeroJetUPC->trkPhi->at(a), MDzeroJetUPC->PFEnergy->at(a));
-          MtSum += tVec.M(); 
-        } // end first loop over the number of tracks
-        hPtSum->Fill(PtSum); 
-        hMtSum->Fill(MtSum); 
-        
-        // skip event if it is outside of the desired hard scale
-         // case 1: using visible energy as the hard scale
-         if(par.UsePtSumHardScale && (PtSum < par.MinPtSum || PtSum > par.MaxPtSum)) continue; 
-         // case 2: using the visible mass as the hard scale.
-         if(!par.UsePtSumHardScale && (MtSum < par.MinMtSum || MtSum > par.MaxMtSum)) continue; 
-         
-        for (unsigned long a = 0; a < MDzeroJetUPC->Nch; a++) {
-            // acceptance cuts on track a
-            if( MDzeroJetUPC->trkPt->at(a) < par.MinTrackPT ) continue; 
-            if(abs(MDzeroJetUPC->trkEta->at(a)) >  par.MaxTrackY) continue; 
-            hTrackPt->Fill(MDzeroJetUPC->trkPt->at(a)); 
-            hTrackEta->Fill(MDzeroJetUPC->trkEta->at(a)); 
-            for (unsigned long b = a+1; b < MDzeroJetUPC->Nch; b++) {
-              // acceptance cuts on track b
-              if(MDzeroJetUPC->trkPt->at(b) < par.MinTrackPT ) continue; 
-              if(abs(MDzeroJetUPC->trkEta->at(b) ) >  par.MaxTrackY ) continue; 
-              double deltaEta = MDzeroJetUPC->trkEta->at(a) - MDzeroJetUPC->trkEta->at(b); 
-              double deltaPhi = MDzeroJetUPC->trkPhi->at(a) - MDzeroJetUPC->trkPhi->at(b); 
-              double deltaR = sqrt(deltaEta*deltaEta + deltaPhi*deltaPhi); 
-              double EEC = MDzeroJetUPC->trkPt->at(a)* MDzeroJetUPC->trkPt->at(b);
-              hEECInclusive->Fill(deltaR, EEC); 
-            } // end of track loop   
-        }
-      
-      
-
-        
-      }   // end of mc
-      // -----------------------
-
+          
+      } // end of event selection if statement
     }     // end of event loop
 
     hNev->SetBinContent(1, numberAccEvents);
     std::cout << "The number of accepted events is " << numberAccEvents << std::endl;
 
   }       // end of analyze
-
+ 
   void writeHistograms(TFile *outf) {
     outf->cd();
     smartWrite(hNev);
@@ -220,6 +218,7 @@ public:
     smartWrite(hPtSum); 
     smartWrite(hMtSum);
     smartWrite(hMult);
+    smartWrite(hEEC); 
 
 
   }
@@ -258,7 +257,7 @@ int main(int argc, char *argv[]) {
   int TriggerChoice = CL.GetInt("TriggerChoice", 2); // 0 = no trigger sel, 1 = isL1ZDCOr, 2 = isL1ZDCXORJet8
   float scaleFactor = CL.GetDouble("scaleFactor", 1); // Scale factor for the number of events to be processed.
   bool IsData = CL.GetBool("IsData", 0);              // Data or MC
-  Parameters par(MinTrackPt, MaxTrackPt, MinTrackY, MaxTrackY, MinPtSum, MaxPtSum, MinMtSum, MaxMtSum,  IsGammaN,UsePtSumHardScale, TriggerChoice, IsData, scaleFactor);
+  Parameters par(MinTrackPt, MaxTrackPt, MinTrackY, MaxTrackY, MinPtSum, MaxPtSum, MinMtSum, MaxMtSum, UsePtSumHardScale, IsGammaN, TriggerChoice, IsData, scaleFactor);
   par.input = CL.Get("Input", "mergedSample.root"); // Input file
   par.output = CL.Get("Output", "output.root");     // Output file
   par.nThread = CL.GetInt("nThread", 1);            // The number of threads to be used for parallel processing.

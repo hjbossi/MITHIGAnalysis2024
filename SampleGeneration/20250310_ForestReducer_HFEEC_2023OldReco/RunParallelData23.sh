@@ -1,7 +1,7 @@
 #!/bin/bash
 MAXCORES=40
 
-NAME="20250523_ForestHFJetData23Skim_2023UPCJanRereco_v8"
+NAME="20250523_ForestHFJetData23Skim_2023UPCJanRereco_v8_SmallSample"
 OUTPUT="output"
 counter=0
 filelist="/data/HFJetUPCanalysis/InputLists/2023UPCJanRereco.txt"
@@ -36,15 +36,13 @@ while IFS= read -r file; do
             --ApplyTriggerRejection 0 \
             --ApplyEventRejection true \
             --ApplyZDCGapRejection true \
-            --ApplyDRejection 1 \
             --ZDCMinus1nThreshold 1000 \
             --ZDCPlus1nThreshold 1100 \
             --MinJetPt 0.0 \
             --MaxJetEta 2.4 \
-            --D0MathchingDistance 0.4 \
             --IsData true \
             --PFTree particleFlowAnalyser/pftree \
-            --Fraction 0.5 &
+            --Fraction 0.1 &
     ((counter++))
     wait_for_slot
 done < "$filelist"

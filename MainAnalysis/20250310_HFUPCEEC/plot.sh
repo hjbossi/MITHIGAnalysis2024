@@ -8,5 +8,4 @@
 
 
 
-./ExecutePlotHFEEC --Input "output_Data_EEC_TrackPtCut020_v5.root","output_MC_pthat0_BeamAandBcombined_TrackPtCut020_v4.root" --tag "Data_WithNewNorm_TrackPtCut020_pthat0" --PtHat 0
-./ExecutePlotHFEEC --Input "output_Data_EEC_TrackPtCut020_Evis10_20_v5.root","output_MC_pthat0_BeamAandBcombined_TrackPtCut020__Evis10_20_v4.root" --tag "Data_WithNewNorm_TrackPtCut020_Evis_10_20_pthat0" --PtHat 0
+./ExecutePlotHFEEC --Input "output_Data_EEC_TrackPtCut020_PtSum100_200_v6.root","output_MC_pthat0_BeamAandBcombined_TrackPtCut020__PtSum0_10000_v5.root" --tag "Data_WithNewNorm_TrackPtCut020_pthat0" --PtHat 0
