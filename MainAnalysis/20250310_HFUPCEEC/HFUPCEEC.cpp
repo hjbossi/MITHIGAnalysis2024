@@ -151,9 +151,9 @@ public:
          // Step 2: Make a cut based on the hard scale
          // skip event if it is outside of the desired hard scale
          // case 1: using visible energy as the hard scale
-         if(par.UsePtSumHardScale && (PtSum < par.MinPtSum || PtSum > par.MaxPtSum)) continue; 
+         if(par.UsePtSumHardScale && (PtSum < par.MinHardScale || PtSum > par.MaxHardScale)) continue; 
          // case 2: using the visible mass as the hard scale.
-         if(!par.UsePtSumHardScale && (MtSum < par.MinMtSum || MtSum > par.MaxMtSum)) continue; 
+         if(!par.UsePtSumHardScale && (MtSum < par.MinHardScale|| MtSum > par.MaxHardScale)) continue; 
         
 
         if(PtSum < 1.0) std::cout << "Error: If statement not working! " << std::endl;
@@ -249,15 +249,13 @@ int main(int argc, char *argv[]) {
   float MaxTrackPt = CL.GetDouble("MaxTrackPT", 10000); // Max track PT
   float MinTrackY = CL.GetDouble("MinTrackY", -2.4); // min track y
   float MaxTrackY = CL.GetDouble("MaxTrackY", 2.4); // max track y
-  float MinPtSum = CL.GetDouble("MinPtSum", 0.0); // Minimum visible energy
-  float MaxPtSum = CL.GetDouble("MaxPtSum", 10000); // Max visible energy
-  float MinMtSum = CL.GetDouble("MinMtSum", 0.0); // Minimum visible mass
-  float MaxMtSum = CL.GetDouble("MaxMtSum", 10000); // Max visible Mass
+  float MinHardScale = CL.GetDouble("MinHardScale", 0.0); // Minimum visible energy
+  float MaxHardScale = CL.GetDouble("MaxHardScale", 10000); // Max visible energy
   bool UsePtSumHardScale = CL.GetBool("UsePtSumHardScale", 1); 
   int TriggerChoice = CL.GetInt("TriggerChoice", 2); // 0 = no trigger sel, 1 = isL1ZDCOr, 2 = isL1ZDCXORJet8
   float scaleFactor = CL.GetDouble("scaleFactor", 1); // Scale factor for the number of events to be processed.
   bool IsData = CL.GetBool("IsData", 0);              // Data or MC
-  Parameters par(MinTrackPt, MaxTrackPt, MinTrackY, MaxTrackY, MinPtSum, MaxPtSum, MinMtSum, MaxMtSum, UsePtSumHardScale, IsGammaN, TriggerChoice, IsData, scaleFactor);
+  Parameters par(MinTrackPt, MaxTrackPt, MinTrackY, MaxTrackY, MinHardScale, MaxHardScale, UsePtSumHardScale, IsGammaN, TriggerChoice, IsData, scaleFactor);
   par.input = CL.Get("Input", "mergedSample.root"); // Input file
   par.output = CL.Get("Output", "output.root");     // Output file
   par.nThread = CL.GetInt("nThread", 1);            // The number of threads to be used for parallel processing.
