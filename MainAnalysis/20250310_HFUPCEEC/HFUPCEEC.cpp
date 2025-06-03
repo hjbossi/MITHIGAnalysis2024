@@ -41,7 +41,7 @@ int FindBin(double Value, int NBins, double Bins[])
 // do the trigger selection here
 // could consider to do additional event selection for gammaN or Ngamma here too, but for now we don't (consider Ngamma and GammaN as combined)
 //============================================================//
-bool triggerSelection(DzeroJetUPCTreeMessenger *b, const Parameters &par) {
+bool triggerSelection(UPCEECTreeMessenger *b, const Parameters &par) {
   if (par.IsData == false)
     return true;
   if (par.TriggerChoice == 1 && b->isL1ZDCOr == false)
@@ -66,11 +66,11 @@ public:
   TH1D* hMult; // multi
 
 
-  DzeroJetUPCTreeMessenger *MDzeroJetUPC;
+  UPCEECTreeMessenger *MDzeroJetUPC;
 
 
   DataAnalyzer(const char *filename, const char *outFilename, const char *mytitle = "")
-      : inf(new TFile(filename)), MDzeroJetUPC(new DzeroJetUPCTreeMessenger(*inf, string("Tree"))),
+      : inf(new TFile(filename)), MDzeroJetUPC(new UPCEECTreeMessenger(*inf, string("Tree"))),
         outf(new TFile(outFilename, "recreate")) {
     outf->cd();
   }
@@ -140,11 +140,11 @@ public:
          // first loop over particle flow candidates to fill the scalar pT sum and the transverse mass sum
          double PtSum = 0.0; 
          double MtSum = 0.0; 
-         for (unsigned long a = 0; a < MDzeroJetUPC->particleFlow_pT->size(); a++) {
+         for (unsigned long a = 0; a < MDzeroJetUPC->PT->size(); a++) {
             // for this cutoff use the 1 GeV threshold determined by Luna
-            if(MDzeroJetUPC->particleFlow_pT->at(a) < 1.0) continue; 
-            PtSum += MDzeroJetUPC->particleFlow_pT->at(a);
-            MtSum += MDzeroJetUPC->particleFlow_M->at(a);
+            if(MDzeroJetUPC->PT->at(a) < 1.0) continue; 
+            PtSum += MDzeroJetUPC->PT->at(a);
+            MtSum += MDzeroJetUPC->M->at(a);
          } // end first loop over the number of tracks
 
          
@@ -195,7 +195,7 @@ public:
               else TotalE = MtSum; 
 
               //std::cout << "total E " << TotalE << std::endl;
-              double  recoEEC  = MDzeroJetUPC->PFEnergy->at(a)*MDzeroJetUPC->PFEnergy->at(b)/(TotalE*TotalE);
+              double  recoEEC  = MDzeroJetUPC->pfEnergy->at(a)*MDzeroJetUPC->pfEnergy->at(b)/(TotalE*TotalE);
               //std::cout << "Filling EEC in bin: " << BinThetaReco << " with entry count " << recoEEC << std::endl;
               hEEC->Fill(BinThetaReco, recoEEC);
             } // end of track loop   

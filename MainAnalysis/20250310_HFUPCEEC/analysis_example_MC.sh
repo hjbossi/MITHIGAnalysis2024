@@ -12,7 +12,7 @@ ISGAMMAN=0
 ISDATA=0
 SCALEFACTOR=1.0
 #INPUT=/data/HFJetUPCanalysis/MCSkims23/20250310_ForestHFJetMC23_D0Tagged_v9_ModTrackCuts_pthat5_BeamAabdBCombined.root
-INPUT=/data/HFJetUPCanalysis/MCSkims23/20250514_ForestHFJetMC23_D0Tagged_v2_pthat0_BeamAandBCombined_SmallSample.root
+INPUT=/data/HFJetUPCanalysis/MCSkims23/20250602_ForestHFJetMC23_D0Tagged_v2_pthat0_BeamAandBCombined_SmallSample.root
 OUTPUTANALYSIS=output_MC_pthat0_BeamAandBcombined_TrackPtCut020__PtSum0_10000_v5.root
 
 

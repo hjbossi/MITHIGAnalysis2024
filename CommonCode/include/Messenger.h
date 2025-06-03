@@ -1054,7 +1054,7 @@ public:
 };
 
 /* Class for the D0 Jet UPC analysis */
-class DzeroJetUPCTreeMessenger
+class UPCEECTreeMessenger
 {
 public:
    TTree *Tree;
@@ -1075,7 +1075,7 @@ public:
    std::vector<float> *trkPt;
    std::vector<float> *trkEta;
    std::vector<float> *trkPhi;
-   std::vector<float> *PFEnergy; 
+   std::vector<float> *pfEnergy; 
 
    // inclusive jet quantites
    int JetCount;

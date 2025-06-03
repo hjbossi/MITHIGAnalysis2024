@@ -3820,14 +3820,6 @@ bool ChargedHadronRAATreeMessenger::FillEntry()
 }
 
 
-DzeroJetUPCTreeMessenger::DzeroJetUPCTreeMessenger(TFile &File, std::string TreeName, bool Debug)
-{
-   Initialized = false;
-   WriteMode = false;
-
-   Tree = (TTree *)File.Get(TreeName.c_str());
-   Initialize(Debug);
-}
 
 UPCEECTreeMessenger::UPCEECTreeMessenger(TFile *File, std::string TreeName, bool Debug)
 {
@@ -3861,7 +3853,7 @@ UPCEECTreeMessenger::~UPCEECTreeMessenger()
       delete M; 
       delete Eta; 
       delete Phi; 
-      delete PFEnergy; 
+      delete pfEnergy; 
       delete JetPt;
       delete JetEta;
       delete JetY;
@@ -3892,7 +3884,7 @@ bool UPCEECTreeMessenger::Initialize(bool Debug)
    trkPt = nullptr;
    trkEta = nullptr;
    trkPhi = nullptr;
-   PFEnergy= nullptr;
+   pfEnergy= nullptr;
    E = nullptr; 
    Eta = nullptr; 
    M = nullptr; 
@@ -3921,7 +3913,7 @@ bool UPCEECTreeMessenger::Initialize(bool Debug)
    Tree->SetBranchAddress("trkPt", &trkPt); 
    Tree->SetBranchAddress("trkEta", &trkEta); 
    Tree->SetBranchAddress("trkPhi", &trkPhi);
-   Tree->SetBranchAddress("pfEnergy", &PFEnergy); 
+   Tree->SetBranchAddress("pfEnergy", &pfEnergy); 
    Tree->SetBranchAddress("E", &E); 
    Tree->SetBranchAddress("PT", &PT); 
    Tree->SetBranchAddress("M", &M); 
@@ -3972,7 +3964,7 @@ bool UPCEECTreeMessenger::SetBranch(TTree *T)
    trkPt = new std::vector<float>();
    trkEta = new std::vector<float>();
    trkPhi = new std::vector<float>(); 
-   PFEnergy = new std::vector<float>(); 
+   pfEnergy = new std::vector<float>(); 
    E = new std::vector<float>(); 
    Eta = new std::vector<float>(); 
    M = new std::vector<float>(); 
@@ -4004,7 +3996,7 @@ bool UPCEECTreeMessenger::SetBranch(TTree *T)
    Tree->Branch("trkPt",                 &trkPt); 
    Tree->Branch("trkEta",                &trkEta);
    Tree->Branch("trkPhi",                &trkPhi);
-   Tree->Branch("pfEnergy",              &PFEnergy);
+   Tree->Branch("pfEnergy",              &pfEnergy);
    Tree->Branch("E",                     &E); 
    Tree->Branch("PT",                    &PT); 
    Tree->Branch("M",                     &M); 
@@ -4047,7 +4039,7 @@ void UPCEECTreeMessenger::Clear()
    trkPt->clear(); 
    trkEta->clear(); 
    trkPhi->clear(); 
-   PFEnergy->clear();
+   pfEnergy->clear();
    E->clear(); 
    PT->clear(); 
    Eta->clear(); 

@@ -228,7 +228,7 @@ int main(int argc, char *argv[]) {
         MUPCEEC.trkPt->push_back(MTrackPbPbUPC.trkPt->at(iTrack));
         MUPCEEC.trkEta->push_back(MTrackPbPbUPC.trkEta->at(iTrack));
         MUPCEEC.trkPhi->push_back(MTrackPbPbUPC.trkPhi->at(iTrack));
-        MUPCEEC.PFEnergy->push_back(MTrackPbPbUPC.PFEnergy->at(iTrack)); 
+        MUPCEEC.pfEnergy->push_back(MTrackPbPbUPC.PFEnergy->at(iTrack)); 
 
         nAccTrk++;
       }
