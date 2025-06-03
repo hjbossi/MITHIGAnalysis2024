@@ -246,7 +246,7 @@ int main(int argc, char *argv[]) {
   CommandLine CL(argc, argv);
   bool IsGammaN = CL.GetBool("IsGammaN", true);      // GammaN analysis (or NGamma)
   float MinTrackPt = CL.GetDouble("MinTrackPT", 0.0); // Minimum track PT
-  float MaxTrackPt = CL.GetDouble("TrackJetPT", 10000); // Max track PT
+  float MaxTrackPt = CL.GetDouble("MaxTrackPT", 10000); // Max track PT
   float MinTrackY = CL.GetDouble("MinTrackY", -2.4); // min track y
   float MaxTrackY = CL.GetDouble("MaxTrackY", 2.4); // max track y
   float MinPtSum = CL.GetDouble("MinPtSum", 0.0); // Minimum visible energy

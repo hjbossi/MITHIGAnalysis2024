@@ -22,8 +22,6 @@ using namespace std;
 #include "trackingEfficiency2018PbPb.h"
 #include "trackingEfficiency2023PbPb.h"
 
-#include "include/DmesonSelection.h"
-
 bool logical_or_vectBool(std::vector<bool>* vec) {
     return std::any_of(vec->begin(), vec->end(), [](bool b) { return b; });
 }
@@ -51,7 +49,6 @@ int main(int argc, char *argv[]) {
   bool ApplyEventRejection = CL.GetBool("ApplyEventRejection", false);
   bool ApplyZDCGapRejection = CL.GetBool("ApplyZDCGapRejection", false);
   string PFTreeName = CL.Get("PFTree", "particleFlowAnalyser/pftree");
-  string DGenTreeName = CL.Get("DGenTree", "Dfinder/ntGen");
   string ZDCTreeName = CL.Get("ZDCTree", "zdcanalyzer/zdcdigi"); // update ZDC info to be rechit when using CMSSW 14_1_X
   string PFJetCollection = CL.Get("PFJetCollection", "ak4PFJetAnalyzer/t"); // original forests: ak4PFJetAnalyzer // new forests: ak0PFJetAnalyzer
   TFile OutputFile(OutputFileName.c_str(), "RECREATE");
@@ -69,13 +66,11 @@ int main(int argc, char *argv[]) {
     PFTreeMessenger MPF(InputFile, PFTreeName);
     SkimTreeMessenger MSkim(InputFile);
     TriggerTreeMessenger MTrigger(InputFile);
-    DzeroTreeMessenger MDzero(InputFile);
-    DzeroGenTreeMessenger MDzeroGen(InputFile, DGenTreeName);
     ZDCTreeMessenger MZDC(InputFile, ZDCTreeName);
     METFilterTreeMessenger MMETFilter(InputFile);
     JetTreeMessenger Mjet(InputFile, PFJetCollection);
 
-
+    
 
     int EntryCount = MEvent.GetEntries() * Fraction;
     ProgressBar Bar(cout, EntryCount);
@@ -97,9 +92,6 @@ int main(int argc, char *argv[]) {
       MPF.GetEntry(iE);
       MSkim.GetEntry(iE);
       MTrigger.GetEntry(iE);
-      MDzero.GetEntry(iE);
-      if (IsData == false)
-        MDzeroGen.GetEntry(iE);
       MZDC.GetEntry(iE);
       MUPCEEC.Clear();
       MMETFilter.GetEntry(iE);

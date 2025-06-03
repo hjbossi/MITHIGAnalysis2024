@@ -63,7 +63,7 @@ void saveParametersToHistograms(const Parameters& par, TFile* outf) {
     TH1D* hMaxPtSum = new TH1D("parMaxPtSum", "parMaxPtSum", 1, 0, 1);
     hMaxPtSum->SetBinContent(1, par.MaxPtSum);
     TH1D* hMinMtSum = new TH1D("parMinMtSum", "parMinMtSum", 1, 0, 1);
-    hMinMtSum->SetBinContent(1, par.MinPtSum);
+    hMinMtSum->SetBinContent(1, par.MinMtSum);
     TH1D* hMaxMtSum = new TH1D("parMaxMtSum", "parMaxMtSum", 1, 0, 1);
     hMaxMtSum->SetBinContent(1, par.MaxMtSum);
     TH1D* hUsePtSumHardScale = new TH1D("parUsePtSumHardScale", "parUsePtSumHardScale", 1, 0, 1);

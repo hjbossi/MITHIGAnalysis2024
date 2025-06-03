@@ -11,6 +11,3 @@ ExecutePlotHFEEC: plotHFEEC.cpp
 		-o ExecutePlotHFEEC `root-config --cflags --glibs` \
 		-I$(ProjectBase)/CommonCode/include \
 		$(ProjectBase)/CommonCode/library/*.o
-
-TestRun: ExecuteHFUPCEEC
-	./ExecuteHFJetUPC --Input /data/HFJetUPCanalysis/DataSkims23/20250106_ForestHFJetData23LowPtSkim_v1.root --Output outputHFJetUPC.root

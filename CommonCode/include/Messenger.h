@@ -35,6 +35,9 @@ class ZDCTreeMessenger;
 class HFAdcMessenger;
 class DzeroTreeMessenger;
 class DzeroGenTreeMessenger;
+class UPCEECTreeMessenger;
+
+
 class HiEventTreeMessenger
 {
 public:
@@ -1053,7 +1056,7 @@ public:
 
 };
 
-/* Class for the D0 Jet UPC analysis */
+/* Class for the UPC EEC analysis */
 class UPCEECTreeMessenger
 {
 public:

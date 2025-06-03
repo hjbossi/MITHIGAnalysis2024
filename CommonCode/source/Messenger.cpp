@@ -3821,6 +3821,15 @@ bool ChargedHadronRAATreeMessenger::FillEntry()
 
 
 
+UPCEECTreeMessenger::UPCEECTreeMessenger(TFile &File, std::string TreeName, bool Debug)
+{
+   Initialized = false;
+   WriteMode = false;
+
+   Tree = (TTree *)File.Get(TreeName.c_str());
+   Initialize(Debug);
+}
+
 UPCEECTreeMessenger::UPCEECTreeMessenger(TFile *File, std::string TreeName, bool Debug)
 {
    Initialized = false;
